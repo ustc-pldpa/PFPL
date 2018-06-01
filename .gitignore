@@ -1,0 +1,26 @@
+#emacs
+.#*
+
+#vscode
+__latexindent_temp.tex
+*.synctex.gz
+
+#latex temporary
+*.aux
+*.log
+*.toc
+*.out
+*.fls
+*.xdv
+
+# PDF
+/*.pdf
+
+# latexmk
+*.texmk
+*.fdb_latexmk
+
+
+#BibTeX
+*.bbl
+*.blg
