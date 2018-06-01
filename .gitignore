@@ -12,6 +12,15 @@ __latexindent_temp.tex
 *.out
 *.fls
 *.xdv
+*.acn
+*.idx
+*.ilg
+*.ind
+*.gls
+*.xdy
+*.alg
+*.acr
+
 
 # PDF
 /*.pdf
@@ -24,3 +33,6 @@ __latexindent_temp.tex
 #BibTeX
 *.bbl
 *.blg
+
+# mac
+.DS_Store
