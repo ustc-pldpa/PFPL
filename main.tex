@@ -10,9 +10,11 @@
 \frontmatter
 \maketitle
 
-\subimport{tex/}{preface2}
-\subimport{tex/}{preface1}
+% \subimport{tex/}{preface2}
+% \subimport{tex/}{preface1}
 \subimport{tex/}{note}
+
+\setcounter{tocdepth}{1}
 \tableofcontents
 
 \newpage
@@ -22,7 +24,7 @@
 % \subimport{tex/part2-statics-and-dynamics/}{part}
 % \subimport{tex/part3-total-functions/}{part}
 % \subimport{tex/part4-finite-data-types/}{part}
-% \subimport{tex/part5-types-and-propositions/}{part}
+\subimport{tex/part5-types-and-propositions/}{part}
 % \subimport{tex/part6-infinite-data-types/}{part}
 % \subimport{tex/part7-variable-types/}{part}
 % \subimport{tex/part8-partiality-and-recursive-types/}{part}
@@ -39,8 +41,8 @@
 % \subimport{tex/part19-appendices/}{part}
 
 \backmatter
+\part{附录}
 \appendix
-\appendixpage
 \printglossary[title=术语]
 
 \end{document}
