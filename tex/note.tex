@@ -55,22 +55,33 @@ Markup Language，超文本标识语言）。
 多行数学环境使用 \verb!$$a + b$$!，  \verb!\[a + b\]!。
 $$a + b$$
 
-有编号的公式:
+有编号的公式使用 \texttt{euqation} 环境:
 
 \begin{equation}\label{euqation:one_plus_one}
     1 + 1 = \lambda f . \lambda x . f\, x
 \end{equation}
 
 
-子编号:
+需要子编号的公式使用 \texttt{subequations} 环境:
 \begin{subequations}
-    \begin{eqnarray}
-        a = b \\
-        c = d
-    \end{eqnarray}
+    \begin{align} % if you need alignment
+        a &= b \\
+        a &= b = c
+    \end{align}
+    \begin{gather}
+        a = b\\
+        a = b = c
+    \end{gather}
+    \begin{equation}
+        a = b
+    \end{equation}
+    \begin{equation}
+        a = b = c
+    \end{equation}
 \end{subequations}
 
-如果不需要编号，在环境名后面加上星号即可： \verb!\begin{equation*} \end{equation*}!
+推荐使用 \texttt{align} 而不是 \texttt{eqnarray}，bug 更少。
+如果不需要编号，在环境名后面加上星号即可，比如： \verb!\begin{equation*} \end{equation*}!。
 
 \subsection{字体}
 
