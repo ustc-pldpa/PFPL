@@ -33,8 +33,10 @@
 
 ## 提交方法
 
-提交 pull request.
+**因版权问题, 翻译稿不再放在 GitHub 上.**
 
-**因版权问题, 提交的 pull request 不会 merge 到 github 的这个库中, 我们会 merge 到内部的 git 中.**
+大家可以从学校内部的git服务器 (202.38.79.111 port 13022) 上取 `pfpl` 库
+
+各位同学只有读的权限，需要参照 [公开的小型项目](https://git-scm.com/book/zh/v1/%E5%88%86%E5%B8%83%E5%BC%8F-Git-%E4%B8%BA%E9%A1%B9%E7%9B%AE%E4%BD%9C%E8%B4%A1%E7%8C%AE#%E5%85%AC%E5%BC%80%E7%9A%84%E5%B0%8F%E5%9E%8B%E9%A1%B9%E7%9B%AE)，使用pull-request进行提交
 
 
