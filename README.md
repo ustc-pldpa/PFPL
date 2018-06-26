@@ -34,3 +34,7 @@
 ## 提交方法
 
 提交 pull request.
+
+**因版权问题, 提交的 pull request 不会 merge 到 github 的这个库中, 我们会 merge 到内部的 git 中.**
+
+
