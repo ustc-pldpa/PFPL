@@ -1,3 +1,482 @@
 \chapter{抽象语法}
 
-\section{测试}
+编程语言以人类和机器都能理解的形式表达计算。编程语言的语法规定了如何将各种短语（表达式、命令、声明等）组合成一段程序。但这些短语是什么？一段程序又由什么组成？
+
+不严格地说，语法一词可以指几种不同的概念。\emph{表层语法（surface
+syntax）}，或\emph{具体语法（concrete
+syntax）}关注如何在计算机上输入和显示这些短语。表层语法通常认为是由从某些字母表（如
+ASCII 和 Unicode）中的字符串给出。\emph{结构语法（concrete
+syntax）}，或\emph{抽象语法（abstract
+syntax）}与短语的结构有关，具体地说，就是如何从其他短语构成这些短语。在这一层次上看，一个短语就是一棵树，称之为\emph{抽象语法树（abstract
+syntax
+tree）}，其节点是将若干短语组合起来构成一个新的短语的运算符。语法的绑定结构涉及标识符的引入和使用：如何声明标识符，以及如何使用已经声明了的标识符。在这一级别上，短语就是\emph{抽象绑定树（abstract
+binding
+trees）。}在抽象语法树的基础上，抽象绑定树增添了绑定和作用域的概念。
+
+在这本书里我们不关心具体语法；相反，我们视一段语法为一颗有限树，并用语法树中表达标识符的绑定和范围的方式来对其进行扩充。为了给本书的其他部分奠定基础，我们在本章分两个层次定义什么是``一段语法''。首先，我们定义抽象语法树，或
+ast
+，它蕴涵一段语法的层次结构，但避免涉及如何以一个字符串的形式具体表达这段语法。在其基础上，我们规定标识符的绑定（声明）和作用域（作用范围）来扩充抽象语法树。这种被扩充了的抽象语法树就是抽象绑定树，或
+abt 。
+
+在 abt
+中，会定义一些函数和关系，来给予标识符的绑定和作用域这一非正式的概念以具体含义。这些概念非常难以正确定义，而且对语言的实现者来说，也是许多麻烦的根源。所以，精确的定义是至关重要的，但是这些定义
+也是相当技术性的，并且难以熟悉。可能最好读这一章节的方式是第一次先快速浏览以理解主要意思，之后有必要的时候再回到这一章澄清具体概念。
+
+\section{抽象语法树}
+
+一棵\emph{抽象语法树}，或简称 ast
+，是一个有序的树，其叶节点为\emph{变量}，每一个内节点是一个\emph{运算符}，其子节点为这个运算符的\emph{参数}。
+对应不同形式的语法， ast
+也被分为不同\emph{类型}。\emph{变量}表示一段未指定的，或一般化的特定类型的语法。
+\emph{运算符}可以组合 ast
+，一个运算符有一个\emph{元数(arity)}，规定了运算符的类型，以及参数的数量和类型。一个属于类
+\emph{s} 的，元数为 \(s_1,\dots,s_n\) 的运算符能组合 \( n \ge 0\)
+个分别为类 \emph{\(s_1,\dots,s_n\)} 的 ast ，得到一个复合的， 类
+\emph{s} 的 ast 。
+
+变量的概念至关重要，因此需要在这里特别强调。一个变量是一个属于某个领域的\emph{未知}的对象。其未知状态可以通过\emph{代换(substitution)}变为已知，即将一个公式中的该变量全部代换为一个特定对象，从而将一般的公式特殊化成一个特定实例的过程。例如，在代数中，令变量在实数中取值，则可以构建形如
+\(x^2+2x+1\) 的多项式，并可以通过代换的方式使其特化，如将 \(x\) 代换为
+\(7\) 则得到 \(7^2+(2\times 7)+1\) ，计算可得为 \(64\) ，即
+\((7+1)^2\)。
+
+抽象语法树通过 \(类型\)
+将其分为不同的语法类型。例如，我们熟悉的编程语言通常对表达式和命令有所区分；
+这就是两个不同的语法树类型。抽象语法树中的变量的类型也在一定范围内，以保证只有这些类型的语法树能够代换该变量。这样，用一个命令去代换一个表达式变量，以及用一个表达式去代换一个命令变量，都是没有意义的，因为命令和表达式的类型不同。但变量的核心概念仍然取自代数，即\emph{一个变量是一个未知的对象，或者一个占位符，且其意义由代换赋予}。
+
+作为例子，考虑一个由算术表达式构成的语言，其包含数字，加和乘。这个语言的抽象语法由单个类型
+\(\texttt{Exp}\) 组成，而 \(\texttt{Exp}\) 又可以通过如下的运算符产生：
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  类型为 \(\texttt{Exp}\) 的运算符 \(\texttt{num}[n]\) ，其中
+  \(n \in \mathbb{N}\) ；
+\item
+  两个类型为 \(\texttt{Exp}\) 的运算符 \(\texttt{plus}\) 和
+  \(\texttt{times}\) ，每个运算符都有两个 \(\texttt{Exp}\) 类型的参数。
+\end{enumerate}
+
+有一个变量的表达式 \(2+(3\times x)\)，可以用类型为 \(\texttt{Exp}\) 的
+ast 表达如下：
+
+\[\texttt{plus}(\texttt{num}[2]; \texttt{times}(\texttt{num}[3];x))\]
+
+假设 x 为 \(\texttt{Exp}\) 类型。因为如 \(\text{num}[4]\) 的类型为
+\(\text{Exp}\) 的 ast 就可以用来代替上面 ast 中的 \(x\) ，得到
+
+\[\texttt{plus}(\texttt{num}[2]; \texttt{times}(\texttt{num}[3];\texttt{num}[4]))\]
+
+写成算式就是 \(2+(3\times 4)\)。当然也可以将 \(x\) 代换成更加复杂的 ast
+，这样结果就是不同的 ast 。
+
+ast 的树状结构提供了一条非常有用的原则，称为\emph{结构归纳法(structural
+induction)}。假设我们希望证明对某个类型的任一 ast \(a\) ，都满足性质
+\(\mathcal{P}(a)\) ，则只需要考虑所有可以生成 \(a\)
+的方式，并证明在任意一情况下，如果其各组分（如果有）都有该性质，则生成的
+\(a\) 也有该性质。因此，在 \(\texttt{Exp}\) 的情况下，我们需要证明：
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  任意 \(\texttt{Exp}\) 类型的变量都有该性质： 证明 \(\mathcal{P}(x)\)
+\item
+  任意数字 \(\texttt{num}[n]\) 都有该性质： 对所有 \(n \in \mathbb{N}\)
+  ，证明 \(\mathcal{P}(\texttt{num}[n])\)
+\item
+  假设 \(a_1\) 和 \(a_2\) 都具有该性质，则 \(\texttt{plus}(a_1;a_2)\) 和
+  \(\texttt{times}(a_1;a_2)\) 也相同：如果 \(\mathcal{P}(a_1)\) 且
+  \(\mathcal{P}(a_2)\) ， 则有 \(\mathcal{P}(\texttt{plus}(a_1;a_2))\)
+  和 \(\mathcal{P}(\texttt{times}(a_1;a_2))\) 成立。
+\end{enumerate}
+
+因为这些情况就穷尽了形成 \(a\) 的所有可能，所以我们可以确信
+\(\mathcal{P}(a)\) 对任一 \(\texttt{Exp}\) 类型的 ast \(a\) 都成立。
+
+通常情况下，使用结构归纳法的时候也会考虑变量作为合适类型的 ast
+解释。简单点说，证明一个 ast
+具有某种性质，其形式上依赖于其变量的性质。这样，用满足某性质的 ast
+去代换该变量，得到的 ast 也会具有该性质。这种形式的结构归纳法为``如果
+\(a\) 有变量 \(x_1,\ldots,x_k\) 且性质 \(\mathcal{Q}\) 对所有 \(x_i\)
+都成立，则有 \(\mathcal{Q}(a)\)''，这样通过结构归纳法证明
+\(\mathcal{P}(a)\) 就变成了证明 \(\mathcal{Q}(a)\)
+对所有\emph{闭合的(closed)} ast 成立。另一方面，如果 \(x\) 是 \(a\)
+的一个变量，且我们用满足 \(\mathcal{Q}\) 的 ast b
+去代换，则代换的结果也满足 \(\mathcal{Q}\) 。
+
+这里我们给出这些概念的精确表达。令 \(\mathcal{S}\)
+为类型的一个有限集合。对一个类型的集合 \(\mathcal{S}\) ，\emph{元数}有
+\((s_1,\ldots ,s_n)s\) 的形式，表示类型 \(s\in \mathcal{S}\) 的，接受
+\(n\ge 0\) 个，每个类型为 \(s_i \in \mathcal{S}\) 的参数的运算符。令
+\(\mathcal{O} = {\mathcal {O}_a}\)
+为一个用元数索引的不相交集合构成的族，其中每一个元数 \(a\)
+对应其中所有元数为 \(a\) 的运算符组成的集合。如果 \(o\) 是一个元数为
+\((s_1,\ldots,s_n)s\) 的运算符，则我们说 \(o\) 的类型为 \(s\) ，且有
+\(n\) 个类型分别为 \(s_1,\ldots,s_n\) 的参数。
+
+固定 \(\mathcal{S}\) 为类型的集合， \(\mathcal{O}\)
+为不同元数的运算符的集合构成的，由其元数索引，的族。令
+\(\mathcal{X} = \{\mathcal{X}_s\}_{s \in \mathcal{S}}\) 为，由类型 \(s\)
+的\emph{变量} \(x\) 组成的不相交有限集合 \(\mathcal{X}_s\)
+组成的，由类型索引的族。当\(\mathcal{X}\)的上下文无关时，如果 一个变量
+\(x\in \mathcal{X_s}\)我们说这个变量 \(x\) 类型为 \(s\) ；而当
+\(x \notin \mathcal{X_s}\) 时，我们可以说 \(x\) 对于 \(\mathcal{X}\)
+来说是\emph{未见(fresh)}的，或者当 \(\mathcal{X}\) 已知的情况下，直接说
+\(x\) 是\emph{未见(fresh)}的。这种记号法当 \(s\)
+是由上下文决定，而不是显式声明的情况下是模糊的。
+
+抽象语法树，或者说 ast 关于类型 \(s\) 的族
+\(\mathcal{A}[\mathcal{X}]=\{\mathcal{A}[\mathcal{X}]\}_{s\in\mathcal{S}}\)
+是满足以下条件的最小的族：
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  一个类型为 \(s\) 的变量是一个类型为 s 的 ast： 如果
+  \(x\in \mathcal{X}_s\), 则 \(x \in \mathcal{A[X]}_s\).
+\item
+  运算符可以组合 ast： 如果 \(o\) 是一个元数为 \((s_1,\dots, s_n)s\)
+  的运算符，且
+  \(a_1\in \mathcal{A[X]}_{s_1},\dots,a_n\in\mathcal{A[X]}_{s_n}\)，则
+  \(o(a_1;\dots ;a_n)\in\mathcal{A[X]}_s\)
+\end{enumerate}
+
+由这个定义可知，我们可以使用结构归纳法来证明对任意 ast，某性质
+\(\mathcal{P}\) 都成立。为了证明性质 \(\mathcal{P(a)}\) 对所有
+\(a\in\mathcal{A[X]}\) 都成立，我们只需要证明：
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  如果 \(x\in\mathcal{X}_s\)， 则 \(\mathcal{P_s(x)}\) 。
+\item
+  如果运算符 \(o\) 有元数 \((s_1,\dots, s_n)s\) ，且
+  \(\mathcal{P_{s_1}(a_1)}\) ，\(\dots\) 和 \(\mathcal{P_{s_n}(a_n)}\)
+  ，则 \(\mathcal{P_s(o(a_1;\dots ;a_n))}\).
+\end{enumerate}
+
+例如，如果有\(X\subseteq Y\) ，很容易通过结构归纳法证明
+\(\mathcal{A[X]\subseteq A[Y]}\)
+
+变量通过代换获得含义，如果 \(a\in\mathcal{A[X,x]}_{s'}\)，且
+\(\mathcal{b\in A[X]_s}\)，则 用 \(b\) 去代换 \(a\) 中出现的所有 \(x\)
+得到的结果 \([b/x]a\in \mathcal{A[X]_{s'}}\) 。 ast a
+被叫做代换的\emph{目标(target)} ，而 \(x\)
+被称为代换的\emph{对象(subject)}。代换由以下的等式所定义：
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \([b/x]x=b\)，而当\(x\neq y\) 时， \([b/x]y=y\) 
+\item
+  \([b/x]o(a_1;\dots;a_n)=o([b/x]a_1;\dots ;[b/x]a_n)\).
+\end{enumerate}
+
+比如，我们可以检查：
+
+\[[\texttt{num}[2]/x]\texttt{plus}(x;\texttt{num}[3])=\texttt{plus}(\texttt{num}[2];\texttt{num}[3])\]
+
+我们可以通过结构归纳法证明一个代换是被正确定义的。
+
+\textbf{定理 1.1.} 如果 \(a\in \mathcal{A[X,x]}\) ，则对任意
+\(b \in \mathcal{A[X]}\) 都存在一个唯一的 \(c\in \mathcal{A[X]}\) 满足
+\([b/x]a=c\).
+
+\emph{证明} 对 \(a\) 使用结构归纳法。 如果 \(a=x\) ，则根据定义有
+\(c=b\) ,否则如果\(a=y\neq x\)， 则同样根据定义有\(c=y\) 。否则，
+\(a=o(a_1;\dots;a_n)\) ，而由归纳法，我们有唯一的 \(c_1,\dots,c_n\) 满足
+\([b/x]a_1=c_1,\dots,[b/x]a_n=c_n\)， 所以由代换的定义，
+\(c=o(c_1;\dots;c_n)\) 。
+
+\section{抽象绑定树}
+
+\emph{抽象绑定树(abstract binding tree)}， 或 abt ，向 ast
+中增加了引入变量和符号的方式（称为\emph{绑定(binding)}）和其有意义的一个特定范围（称为\emph{作用域(scope)}）。绑定的作用域是一个
+abt ，在这个 abt
+中，这个被绑定的变量被用作占位符（例如在变量声明的时候），或是运算符的索引（例如在声明符号的时候）。
+所以一个 abt
+的子树中的活跃变量可能会多于包围这个子树的树活跃变量。并且，不同的子树可能引入有着不相交的作用域的变量。其中最重要的原理是任意对标识符的使用都应该认为是对其绑定的一个引用，或者说抽象指针。这导致的其中一个结果就是只要我们总能将每一次对标识符的使用关联到一个唯一的绑定上，选择什么标识符就是不重要的。
+
+作为一个起手的例子，考虑表达式
+\(\texttt{let } x \texttt{ be } a_1 \texttt{ in } a_2\)，它引入了一个变量
+\(x\)，为其在 \(a_2\) 中当作 \(a_1\) 使用。变量 \(x\) 被
+\(\texttt{let}\) 表达式为在 \(a_2\) 中使用而被绑定；任意在 \(a_1\) 中的
+\(x\) 只是有着相同名字的不同变量。比如，在表达式
+\(\texttt{ let } x \texttt{ be } 7 \texttt{ in } x+x \)
+中，加式中出现的所有 \(x\) 都指的是被 \(\texttt{let}\)
+表达式引入的变量。而在表达式
+\(\texttt{let } x \texttt{ be } x * x \texttt{ in } x+x \)
+中，乘式中出现的所有 \(x\) 和加式中的指的是不同的变量。后者指的是被
+\(\texttt{let}\) 表达式引入的绑定，而前者指的是没有出现在这里的绑定。
+
+只要绑定变量指的是同一个绑定，其名字就不重要。所以，比如
+\(\texttt{let } x\texttt{ be } x * x \texttt{ in } x+x\)
+完全可以被改写成
+\(\texttt{ let } y \texttt{ be } x * x \texttt{ in } y+y \)，而其含义不变。在前一个式子中，变量
+\(x\) 在加式中是被绑定的，而在后者中被绑定的变量变成了 \(y\)
+，但其``指针结构''保持不变。但另一方面，表达式\(\texttt{let } x\texttt{ be } y * y \texttt{ in } x+x\)
+的含义则与这两个表达式不同，因为乘式中的 \(y\)
+表示的是不同的外围变量。已绑定变量的重命名应该保证，其一定不改变表达式中变量引用的结构。例如，表达式
+
+\[\texttt{ let } x \texttt{ be } 2 \texttt{ in} \texttt{ let } y \texttt{ be } 3 \texttt{ in } x+x\]
+
+的含义就和表达式
+
+\[\texttt{ let } y \texttt{ be } 2 \texttt{ in} \texttt{ let } y \texttt{ be } 3 \texttt{ in } x+x\]
+
+不同。因为在第二个表达式中， \(y+y\) 中的 \(y\)
+指的是内层声明的变量，而不是像第一个表达式中的 \(x\)
+指的是外层声明的变量。
+
+Ast 的概念可以扩展到包括变量的绑定和作用域。这种扩展了的 ast
+被称作\emph{抽象绑定树(abstract binding trees)}，或简称 \emph{abt} 。
+Abt 通过允许运算符在每一个参数中绑定任意有限个（可能为零个）变量来扩展
+ast 。运算符的一个参数被称为\emph{抽象子(abstractor)}，具有
+\(x_1,\dots,x_k.a\) 的形式。变量序列 \(x_1,\dots ,x_k\) 在 \(a\) 这个
+abt 中被绑定。（当 \(k\) 为零时，我们不区分 \(.a\) 和 \(a\)
+自身）。将表达式 \(\texttt{let } x\texttt{ be } a_1 \texttt{ in } a_2\)
+写成 abt 的形式，有 \(\texttt{let}(a_1;x.a_2)\) ，更明白的解释了 \(x\)
+在 \(a_2\) 中被绑定，而不是 \(a_1\) 中。
+我们经常将不同变量组成的有限序列 \(x_1, \dots , x_n\) 用 \(\vec{x}\)
+表示，这样 \(\vec{x}.a\) 表示 \(x_1,\dots,x_n.a\) 。
+
+为了表示绑定，运算符被赋予一个形如 \((v_1,\dots,v_n)s\)
+的\emph{泛化元数(generalized arity)}， 其指定了有 \(n\)
+个\emph{价(valence)}为 \(v_1,\dots,v_n\)的参数、类型为 \(s\)
+的运算符。大体而言一个 价 \(v\) 有着 \(s_1,\dots,s_k.s\)
+的形式，指定了参数的类型，以及其绑定的变量的数量以及类型。我们说，一个变量序列
+\(\vec{x}\) 是类型 \(\vec{s}\) 的时候，我们是说，两个向量有着相同的长度
+\(k\) ，而且对每个 \(1\leq i\leq k\)，都有变量 \(x_i\) 属于类型
+\(s_i\)。
+
+这样，指定一个运算符 \(\texttt{let}\) 有类型
+\((\texttt{Exp}, \texttt{Exp.Exp})\texttt{Exp}\) 即为表示其是类型
+\(\texttt{Exp}\) ，其第一个参数的类型为不绑定任何变量的 \(\texttt{Exp}\)
+，而第二个参数的类型为绑定了一个 \(\texttt{Exp}\) 类型的变量的
+\(\texttt{Exp}\) 。非正式的表达式
+\(\texttt{let } x\texttt{ be } 2+2 \texttt{ in } x\times x\) 就可以写成
+abt
+
+\[\texttt{let}(\texttt{plus}(\texttt{num}[2];\texttt{num}[2]);x.\texttt{times}(x;x))\]
+
+其中，运算符 \(\texttt{let}\)
+有两个参数，第一个是一个表达式，第二个是一个绑定了一个表达式变量的抽象子。
+
+固定类型的集合 \(\mathcal{S}\)
+，以及一族通过其泛化元数索引的、运算符的不相交集合 \(\mathcal{O}\)
+。对给定的一族变量的不相交集合 \(\mathcal{X}\)
+，\emph{抽象绑定树}的族，或写作 \emph{abt} 的 \(\mathcal{B[X]}\)
+的定义类似 \(\mathcal{A[X]}\) ，除了 \(\mathcal{X}\)
+在定义中不是固定的，而是随我们进入抽象子的作用域而变化的。
+
+这一概念虽然简单，想要准确表达却是出人意料的难。第一种定义的想法是将其定义为满足下述条件的最小的集合的族：
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  如果 \(x\in \mathcal{X}_s\) ，则 \(x \in \mathcal{B[X]}_s\) 。
+\item
+  对任意元数为 \((\vec{s_1}.s_1,\dots,\vec{s_n}.s_n)s\) 的运算符 \(o\)
+  ，如果 \(a_1\in \mathcal{B[X,\vec{x_1}]}_{s_1},\dots,\) 且
+  \(a_n\in \mathcal{B[X,\vec{x_n}]}_{s_n}\) ，则
+  \(o(\vec{x_1}.a_1;\dots;\vec{x_n}.a_n)\in \mathcal{B[X]}_s\) .
+\end{enumerate}
+
+在每一个参数中，被绑定的变量被并入活跃变量的集合，其类型由操作符的价决定。
+
+这一定义\emph{几乎是}正确的，但它没有正确考虑变量的重命名。一个形为
+\(\texttt{let}(a_1;x.\texttt{let}(a_2;x.a_3))\)
+在该定义下是病态的，因为第一个绑定将 \(x\) 添加到 \(\mathcal{X}\)
+，因此第二个绑定不能也将 \(x\) 添加到 \(\mathcal{X},x\) ，因为其对
+\(\mathcal{X},x\) 来说不是未见的。
+解决方法是保证无论如何选择参数中绑定的变量名，所有的参数都是良型的，这通过\emph{未见重命名(fresh
+renamings)}实现。具体而言，对一个有限的变量序列 \(\vec{x}\)
+的一个未见的重命名（相对于 \(\mathcal{X}\)）是一个 \(\vec{x}\) 到
+\(\vec{x}'\) 的双射 \(\rho : \vec{x} \leftrightarrow \vec{x}'\) ，其中
+\(\vec{x}'\) 对 \(\mathcal{X}\) 是未见的。我们将把 \(a\) 中出现的所有
+\(x_i\) 代换成 \(\rho(x_i)\) （\(x_i\) 对应的 \(\vec{x}'\) 中的变量名）
+的结果用 \(\hat{\rho}(a)\) 表示。
+
+这是加入了未见重命名后的 abt 的定义的第二条：
+
+\begin{itemize}
+\item
+  对任意元数为 \((\vec{s_1}.s_1,\dots,\vec{s_n}.s_n)s\) 的运算符 \(o\)
+  ，如果对每一个 \(1 \leq i \leq n\) 和每一个未见重命名
+  \(\rho_i:\vec{x_i}\leftrightarrow \vec{x_i}'\) ，都有
+  \(\hat{\rho_i}(a_i)\in \mathcal{B[X,\vec{x_i}']}\) ，则
+  \(o(\vec{x_1}.a_1,\dots,\vec{x_n}.a_n)\in \mathcal{B[X]}_s\)
+\end{itemize}
+
+对每一个 \(a_i\) 的重命名 \(\hat{\rho_i}(a_i)\)
+保证了不会有变量名字的冲突，以及在 abt
+中对任意已绑定变量的重命名几乎都是合法的。
+
+结构归纳法的原理可以延伸至 abt
+，称之为\emph{未见重命名模下的结构归纳法（structural induction modulo
+fresh renaming)} 。其指出，为了证明 \(\mathcal{P[X]}(a)\) 对任意
+\(a\in \mathcal{B[X]}\) 都成立，只需要证明以下：
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  如果 \(x \in \mathcal{X}_s\) ，则 \(\mathcal{P[X]}_s(x)\).
+\item
+  对任意元数为 \((\vec{s_1}.s_1,\dots,\vec{s_n}.s_n)s\) 的运算符 \(o\)
+  ，如果对每一个 \(1\leq i \leq n\) ，
+  \(\mathcal{P[X,\vec{x_i}']}_{s_i}(\hat{\rho_i}(a_i))\) 对所有
+  \(\rho_i:\vec{x_i}\leftrightarrow \vec{x_i}'\) 都成立，其中
+  \(\vec{x_i}' \notin X\) ，那么
+  \(\mathcal{P[X]}_s(o(\vec{x_1}.a_1;\dots;\vec{x_n}.a_n))\) 成立。
+\end{enumerate}
+
+第二个条件保证了归纳假设在选择任何未见的绑定变量的名称的情况下都能成立，而不是只有在
+abt 中实际给出的命名下才成立。
+
+举一个例子，定义判断 \(x\in a\) 为 \(x\) 在 \(a\)
+中\emph{自由出现(occurs freely)} ，其中 \(a\in \mathcal{B[X,x]}\)
+。非正式地说，它意味着 \(x\) 在 \(a\) 之外，而不是在 \(a\) 之内被绑定。
+如果 \(x\) 在 \(a\) 内被绑定，则这些出现的 \(x\) 和那些在绑定之外出现的
+\(x\) 不同。下列定义保证了这种情况。
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \(x\in x\).
+\item
+  如果存在 \(1\leq i \leq n\) 使得对每一个未见重命名
+  \(\rho:\vec{x_i}\leftrightarrow \vec{z_i}\) 都有
+  \(x\in \hat{\rho}(a_i)\) ,那么
+  \(x \in o(\vec{x_1}.a_1,\dots,\vec{x_n}.a_n)\).
+\end{enumerate}
+
+第一个条件指出 \(x\) 在 \(x\) 中是自由的，但在 \(y\) 中则不是，这里
+\(y\) 为任意非 \(x\) 的变量。第二个条件则是说如果无论如何选取变量名，
+\(x\) 都在某一个参数中自由出现，那么 \(x\) 在整个 abt 中自由出现。
+
+$\alpha$-等价关系（\emph{$\alpha$-equivalence} ，如此命名有历史原因）：
+\(a=_\alpha b\) 表示 \(a\) 和 \(b\)
+在不考虑已绑定变量的名称的情况下是相同的。$\alpha$-等价是最强的一致性，其包含以下的两个条件：
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \(x=_\alpha x\)
+\item
+  \(o(\vec{x_1}.a_1;\dots;\vec{x_n}.a_n) =_\alpha o(\vec{x_1}'.a_1;\dots;\vec{x_n}'.a_n)\)
+  如果对每个 \( 1\leq i\leq n\) 和所有的未见重命名
+  \(\rho_i:\vec{x_i}\leftrightarrow\vec{z_i}\) 和
+  \(\rho_i':\vec{x_i}'\leftrightarrow\vec{z_i}\) 都有
+  \(\hat{\rho_i}(a_i)=_\alpha\hat{\rho_i}'(a_i')\) 。
+\end{enumerate}
+
+其背后的想法是如果如果我们一致地重命名 \(\vec{x_i}\) 和 \(\vec{x_i}'\)
+且避免混乱，再检查 \(a_i\) 和 \(a_i'\) 是否为$\alpha$-等价。如果
+\(a=_\alpha b\) ，则 \(a\) 和 \(b\) 为互相的 \emph{$\alpha$-变体($\alpha$-variants)}。
+
+需要注意用类型为 \(s\) 的 abt b 去代换 abt \(a\) 中自由出现的类型为
+\(s\) 的 \(x\) （写作 \([b/x]a\)
+）的定义。代换可以用下面的条件部分定义：
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \([b/x]x=b\), 且如果 \(x\neq y\)，则 \([b/x]y=y\).
+\item
+  \([b/x]o(\vec{x_1}.a_1;\dots;\vec{x_n}.a_n)=o(\vec{x_1}'.a_1;\dots;\vec{x_n}'.a_n)\)，其中对每个
+  \(1\leq i\leq n\)，都要求 \(\vec{x_i}\notin b\)，而且在
+  \(x\notin \vec{x_i}'\) 时设 \(a_i'=[b/x]a_i\) ，否则设 \(a_i'=a_i\).
+\end{enumerate}
+
+\([b/x]a\) 的定义非常细腻，值得仔细考虑。
+
+代换的一个问题是需要注意如果 \(x\) 在 \(a\) 内被一个抽象子绑定，则 \(x\)
+不在这个抽象子内自由出现，因此在代换下不应有变化。例如，
+\([b/x]\texttt{let}(a_1;x.a_2)=\texttt{let}([b/x]a_1;x.a_2)\) ,因为
+\(x\) 在 \(a_2\) 中没有自由出现。另一个问题点是在代换中， \(b\)
+的自由变量的\emph{捕获(capture)}. 比如，如果 \(y\in b\)，且 \(x\neq y\)
+，则 \([b/x]\texttt{let}(a_1;y.a_2)\) 是未定义的，而不是有人可能会预想的
+\(\texttt{let}([b/x]a_1;y.[b/x]a_2)\) 。再举个例子，假设 \(x\neq y\) ，
+\([y/x]\texttt{let}(\texttt{num}[0];y.\texttt{plus}(x;y))\)
+是未定义的，而不是
+\(\texttt{let}(\texttt{num}[0];y.\texttt{plus}(y;y))\)
+，这样会混淆两个不同的名为 \(y\) 的变量。
+
+虽然捕获的避免是代换的一个重要的特点，但这在某种角度而言只是技术上的一点小麻烦。如果已绑定变量的名称没有什么重要性，则捕获总是可以通过现重命名
+\(a\) 中已绑定的变量来避免和 \(b\)
+中的自由变量冲突。在之前的例子中，如果我们将已绑定的变量 \(y\) 重命名为
+\(y'\) 以得到
+\(a' \triangleq \texttt{let}(\texttt{num}[0];y'.\texttt{plus}(x;y'))\)
+，则 \([b/x]a'\) 是有定义的，且和
+\(\texttt{let}(\texttt{num}[0];y'.\texttt{plus}(b;y'))\)
+相等。这样避免捕获的代价是代换仅由$\alpha$-等价决定，因此我们不能将其看作是一个函数，而只是一个关系。
+
+为恢复代换的函数性质，只需要采用如下的\emph{标识约定(identification
+convention)}即可：
+
+\begin{lemma}
+  抽象绑定树总是根据$\alpha$-等价决定是否相同。
+\end{lemma}
+
+即，我们认为$\alpha$-等价的 abt 是相同的。代换可以扩展到 abt 的$\alpha$-等价类，并选择
+b 和 a
+所在类的代表使得代换是有定义的，再形成结果的等价类，以此方式来避免捕获。两个等价类的代表，只要使得这一变换有定义，无论这个代表如何选择，其结果都是$\alpha$-等价的，这样代换成为了一个良定义的全函数。\emph{在整本书中，我们将采用
+abt 的标识约定。}
+
+实际上，通常有必要考虑一些语言，这些语言的抽象语法无法用固定的运算符来描述，而是要求可用的运算符应和其所在的上下文有关。就我们的目的而言，只需要考虑用一组\emph{符号参数(symbolic
+parameters)}------或简称\emph{符号(symbols)}------来索引运算符的族，使得运算符的集合随符号的集合而改变。一个\emph{索引运算符(indexed
+operator)} \(o\) 是一族用符号 \(u\) 索引的运算符，满足当 \(u\)
+是一个可用的符号的时候，\(o[u]\) 是一个运算符。如果 \(\mathcal{U}\)
+是符号的有限集合，则\(\mathcal{B[U;X]}\)
+同之前所述，由运算符和变量生成的、用类索引的 abt
+族，其中也包括所有用符号 \(u\in \mathcal{U}\)
+索引的运算符。一个变量是一个表示有着其类型的未知的 abt
+的占位符，但一个符号\emph{不表示任何东西}，因此也不是一个 abt
+。符号的唯一重要性就是一个符号是否和另一个相同或不同；运算符的实例
+\(o[u]\) 和 \(o[u']\) 相同当且仅当 \(u\) 是 \(u'\) ，而且是同一个符号。
+
+符号的集合可以通过引入在某作用域中的一个\emph{新的}，换言之，\emph{未见的}符号来进行扩展。这可以通过使用形如
+\(u.a\) 的抽象子来完成，这里 \(u.a\) 在 abt \(a\) 中绑定符号 \(u\).
+抽象符号的``新''和抽象变量的概念是相似的：一个已绑定符号的名称只要保证没有冲突，就可以随意改变。两者唯一的不同是重命名是对符号的唯一操作，对符号而言没有代换的概念。
+
+最后，简述一下记号法：为了可读性我们通常``组合''以及``阶段化''运算符的参数。我们用圆括号表示组合，而且认为阶段从右到左进行。所有在一个组里的参数都认为在一个阶段发生，即使参数之间有顺序。而相继的阶段的参数按顺序发生。阶段和组合在助记上经常有用，但并不重要。例如，
+abt \(o\{a_1;a_2\}(a_3;x.a_4)\) 和 abt \(o(a_1;a_2;a_3;x.a_4)\)
+相同，且只要保证参数间的顺序，可以任意地组合和阶段化其参数。
+
+\section{注}
+
+\section{练习}
+
+\begin{description}
+\item[1.1.] 用对 abt 的结构归纳法证明如果 \(\mathcal{X} \subseteq \mathcal{Y}\)
+，则 \(\mathcal{A[X]} \subseteq \mathcal{A[Y]}\).
+
+\item[1.2.] 用对 abt 的重命名模下的结构归纳法，证明如果
+\(\mathcal{X} \subseteq \mathcal{Y}\) ，则
+\(\mathcal{B[X]} \subseteq \mathcal{B[Y]}\).
+
+\item[1.3.] 证明如果有 \(a=_\alpha a'\) 和 \(b=_\alpha b'\) ，且 \([b/x]a\) 和
+\([b'/x]a'\) 都有定义，则 \([b/x]a=_\alpha [b'/x]a'\).
+
+\item[1.4.]
+已绑定变量可以类比自然语言中的代词。在一个抽象子中变量的绑定``固定''了一个``未见的''代词的用法，即在抽象子内，这个代词明确地代指那个变量（对比代词的代指经常含糊的英语）。这一发现表示可以用另外一种方式来表达
+abt ，称为\emph{抽象绑定图(abstract binding graphs)}，或简称 abg 。 abg
+是按以下方式构建的有向图：
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  自由变量是没有出边的单个点
+\item
+  有n个参数的运算符是n重点，结点的每个子结点都有对应的一条出边与之相连。
+\item
+  抽象子是有一条出边连到抽象变量的作用域的结点
+\item
+  已绑定变量是从引入该变量的抽象子出发的边。
+\end{enumerate}
+
+注意 ast ，可以当作是没有抽象子的
+abt，是无环图（更精确地说是可变树），而一般的 abt
+可以是有环的。画一画对应这一章的几个示例 abt 对应的 abg 。对用类型索引的
+abg 族 \(\mathcal{G[X]}\)
+下一个准确的定义。你会怎么表示已绑定变量（回边）？
+\end{description}
