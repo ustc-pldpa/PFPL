@@ -1,0 +1,204 @@
+\chapter{泛型编程}
+
+\section{介绍}
+
+许多程序是一种模式在特定情况下的实例。有时，类型能够通过一种被称为\textit{泛型}（\textit{generic}）编程的技术
+来确定这种模式。比如，在第九章中，在自然数上的递归是通过\textit{特设的}（\textit{ad hoc}）方式引出的。
+而接下来，我们会看到这种在归纳类型的值上进行递归的模式会被表达成泛型程序。
+
+为了体会这个概念，考虑一个类型是$\rho \rightarrow \rho'$的函数$f$。它将一个类型为$\rho$
+的值转换到类型为$\rho'$的值。比如，$f$可以是一个自然数上的倍增函数。我们把$f$施加在
+输入的多个部分上，让输入中类型为$\rho$的值变为类型为$\rho'$的值，而不改变其它类型的值。这样扩展后
+$f$就转换成类型为$[\rho/t]\tau \rightarrow [\rho'/t]\tau$的函数。比如，$\tau$可能是$\texttt{bool} \times t$
+。这种情况下，$f$可以把$\langle a,b\rangle$转换成$\langle a, f(b)\rangle$，
+从而被扩展为类型是$\texttt{bool}\times\rho\rightarrow\texttt{bool}\times\rho'$的函数。
+
+前面的例子实际上掩盖了一个代换的多对一特性引起的歧义。
+由$t$在$\tau$中的出现次数的多样性可以得知，一个类型可以通过多种方式来满足$[\rho/t]\tau$形式。
+给定一个如上的$f$，我们并不清楚如何让它扩展成类型是$[\rho/t]\tau \rightarrow [\rho'/t]\tau$的函数。
+为了解决这个歧义，我们必须得到一个标记了$\tau$中$f$要作用的$t$的位置的模板。这样的模板又被称为\textit{类型运算符}（\textit{type operator}）$t.\tau$。同时，这也是一个在类型$\tau$中绑定了变量$t$的抽象子。
+有了这样的抽象子和代换，我们就能无歧义地将$f$扩展到$\tau$的实例。
+
+泛型编程的能力取决于它所允许使用的类型运算符。最简单的一种情形就是从类型的和与积（包括它们的空元形式）构造得到的\textit{多项式}类型运算符。它可以被扩展为允许相同形式的函数类型的\textit{阳性}类型运算符。
+
+\section{多项式类型运算符}
+
+一个\textit{类型运算符}，是一个附加了特殊变量的类型。这个变量出现的地方标记了类型中哪里需要施加变换。
+类型运算符也是一个满足$t\ \texttt{type} \vdash \tau\ \texttt{type}$的抽象子$t.\tau$。比如，
+下面这个类型运算符和抽象子$$t.\texttt{unit}+(\texttt{bool}\times t)$$t的位置标记了何处需要施加变换。
+我们可以通过把类型$\tau$中的变量$t$代换成类型$\rho$来得到一个类型运算符$t.\rho$的实例。
+
+多项式运算符由类型变量$t$、类型\texttt{void}、类型\texttt{unit}、和类型构造子$\tau_1 + \tau_2$与积类型构造子
+$\tau_1\times\tau_2$组成。更确切的说，断言$t.\tau\ \texttt{poly}$是由这些规则归纳定义而得：
+
+\begin{subequations}
+	\begin{gather}
+	\overline{t.t\ \texttt{poly}} \newline\\
+	\overline{t.\texttt{unit}\ \texttt{poly}} \\
+	\frac{t.\tau_1\ \texttt{poly}\ \ t.\tau_2\ \texttt{poly}}{t.\tau_1\times t.\tau_2\ \texttt{poly}} \\
+	\overline{t.\texttt{void}\ \texttt{poly}} \\
+	\frac{t.\tau_1\ \texttt{poly}\ \ t.\tau_2\ \texttt{poly}}{t.\tau_1 + t.\tau_2\ \texttt{poly}}
+	\end{gather}
+\end{subequations}
+练习 14.1 要求证明在施加代换时，多项式类型运算符保持封闭性。
+
+多项式类型运算符是描述数据结构的结构的模板，有着为特定类型的值准备的槽位。比如，类型运算符$t.t\times(\texttt{nat} + t)$
+表示任取类型$\rho$得到的类型$\rho\times(\texttt{nat} + \rho)$。因此，多项式类型运算符指出了数据结构中
+拥有共同类型的点。我们接下来就会看到，这个特性允许我们指定一个程序。这个程序能把给定函数作用在复合数据结构的所有目标点上，
+得到一个新的复合结构。新的复合结构中，目标点上的值是经过给定函数作用后得到的值。因为代换不是单射的，所以我们
+不能从类型操作符的实例中恢复出原来的类型操作符。比如，当$\rho$是\texttt{nat} 时，上面的实例就变成了
+$\texttt{nat}\times(\texttt{nat} +\texttt{nat})$。除非有类型运算符给出的模式，我们无从得知哪个\texttt{nat} 是指定点。
+
+多项式类型的\textit{泛型扩展}（\textit{generice extension}）表达式拥有如下语法形式：
+$$\texttt{Exp}\ e\ ::=\ \texttt{map}\{t.\tau\}(x.e')(e)\ \text{generic extension.}$$
+它的静态语义如下：
+\begin{equation} \label{eq:generic-extension-statics}
+\frac{t.\tau\ \texttt{poly}\ \ \Gamma,x:\rho\vdash e':\rho'\ \ \Gamma\vdash e:[\rho/t]\tau}
+{\Gamma\vdash \texttt{map}\{t.\tau\}(x.e')(e):[\rho'/t]\tau}
+\end{equation}
+抽象子$x.e'$指定了一个把$x:\rho$变为$e':\rho'$的映射。$t.\tau$的泛型扩展和$x.e'$指定了一个从
+$[\rho/t]\tau$到$[\rho'/t]\tau$的映射。后一个映射把出现在对应到$\tau$中$t$的位置上的类型为$\rho$的值$v$
+代换成了类型为$\rho'$的值$[v/x]e'$。类型运算符$t.\tau$是一个标记了$t$出现的位置的模板。它来告知哪里需要施加
+变换$x.e'$到类型$[\rho/t]\tau$的值上来得到类型为$[\rho'/t]\tau$。
+
+下面的动态语义给出了多项式类型运算符的泛型扩展的精确定义：
+\begin{subequations} \label{eq:generic-extension-dynamics}
+	\begin{gather}
+	\overline{\texttt{map}\{t.t\}(x.e')(e)\mapsto [e/x]e'} \label{eq:generic-extension-dynamics-a} \\
+	\overline{\texttt{map}\{t.\texttt{unit}\}(x.e')(e)\mapsto e} \label{eq:generic-extension-dynamics-b}\\
+	\overline{\texttt{map}\{t.\tau_1\times\tau_2\}(x.e')(e)
+			  \mapsto
+			  \langle\texttt{map}\{t.\tau_1\}(x.e')(e\cdot \texttt{l}),\texttt{map}\{t.\tau_2\}(x.e')(e\cdot \texttt{r})\rangle} \label{eq:generic-extension-dynamics-c}\\
+	\overline{\texttt{map}\{t.\texttt{void}\}(x.e')(e)\mapsto\texttt{abort}(e)} \label{eq:generic-extension-dynamics-d}\\
+	\overline{\texttt{map}\{t.\tau_1+\tau_2\}(x.e')(e)\mapsto
+	          \texttt{case} e\{\texttt{l}\cdot x_1\hookrightarrow\texttt{l}\cdot\texttt{map}\{t.\tau_1\}(x.e')(x_1)\}|
+               \texttt{r}\cdot x_2\hookrightarrow\texttt{r}\cdot\texttt{map}\{t.\tau_2\}(x.e')(e)} \label{eq:generic-extension-dynamics-e}
+	\end{gather}
+\end{subequations}
+根据运算符$t.t$，规则\ref{eq:generic-extension-dynamics-a}将变换$x.e'$直接作用到$e$上。
+规则\ref{eq:generic-extension-dynamics-b}说明空的元组会变成它自身。
+规则\ref{eq:generic-extension-dynamics-c}说明，根据运算符$t.\tau _1\times\tau_2$，对$e$的变换
+会根据运算符$t.\tau_1$和$t.\tau_2$先后作用在$e$的第一个和第二个组成部分上。
+规则\ref{eq:generic-extension-dynamics-d}说明，作用在类型为\texttt{void} 的值上时程序会中止，因为
+不存在这样的值。规则\ref{eq:generic-extension-dynamics-e}说明，根据运算符$t.\tau_1+\tau_2$，
+程序会根据$e$的值，按照$t.\tau_1$或$t.\tau_2$进行转换，然后重新构建值。
+
+考虑由$t.\texttt{unit}+(\texttt{bool}\times t)$给出的类型运算符$t.\tau$。令$x.e$为求自然数后继的抽象子$x.\texttt{s}(x)$。
+运用规则\ref{eq:generic-extension-dynamics}，我们可以推导到
+$$\texttt{map}\{t.\tau\}(x.e)(\texttt{r}\cdot\langle\texttt{true},n\rangle)\mapsto^*
+\texttt{r}\cdot\langle\texttt{true},n+1\rangle.$$
+因为类型变量$t$出现在了类型运算符$t.\tau$中，输入值的第二部分的自然数递增了一。
+
+\begin{theorem}[保留定理]\label{theorem:generic-extension-preservation}
+	如果$\normalfont\texttt{map}\{t.\tau\}(x.e')(e):\tau'$，且$\normalfont\texttt{map}\{t.\tau\}(x.e')(e)\mapsto e''$，那么$e'':\tau'$
+\end{theorem}
+
+\begin{proof}
+	根据规则\ref{eq:generic-extension-statics}的反推，我们有
+	\begin{enumerate}
+		\item $t\ \texttt{type}\vdash\tau\ \texttt{type}$;
+		\item 存在$\rho$和$\rho'$使得$x:\rho\vdash e':\rho'$;
+		\item $e:[\rho/t]\tau$;
+		\item $\tau'$是$[\rho'/t]\tau$
+	\end{enumerate}
+接下来根据规则\ref{eq:generic-extension-dynamics}进行证明。比如，考虑规则\ref{eq:generic-extension-dynamics-c}，
+我们有$\texttt{map}\{t.\tau_1\}(x.e')(e\cdot\texttt{l}):[\rho'/t]\tau_1$和
+$\texttt{map}\{t.\tau_2\}(x.e')(e\cdot\texttt{l}):[\rho'/t]\tau_2$，
+很容易可以得到
+$$\langle\texttt{map}\{t.\tau_1\}(x.e')(e\cdot \texttt{l}),\texttt{map}\{t.\tau_2\}(x.e')(e\cdot \texttt{r})\rangle$$
+的类型符合要求，即类型为$[\rho'/t](\tau_1\times\tau_2)$。
+\end{proof}
+
+\section{阳性类型运算符}
+
+\textit{阳性}（\textit{positive}）类型运算符扩展了多项式类型，它允许受限形式的函数类型。
+具体来说，当且仅当（1）$t$并没有出现在$\tau_1$中，且（2）$t.\tau_2$是一个阳性类型运算符时，
+$t.\tau_1\rightarrow\tau_2$是一个阳性类型运算符。通常来说，函数类型定义域里出现类型变量$t$被称为
+\textit{阴性出现}（\textit{negative occurrences}），而值域或者积类型与和类型中出现了$t$被称为
+\textit{阳性出现}（\textit{positive occurrences}）。阳性类型运算符中只允许$t$的阳性出现。与多项式类型运算符一样，
+阳性类型运算符在代换下也是封闭的。
+
+我们定义一个断言$t.\tau\ \texttt{pos}$。它通过下面的规则来判断一个抽象子$t.\tau$是否是阳性类型运算符：
+\begin{subequations}\label{eq:positive-type-statics}
+	\begin{gather}
+	\overline{t.t\ \texttt{pos}} \label{eq:positive-type-statics-a} \\
+	\overline{t.\texttt{unit}\ \texttt{pos}} \label{eq:positive-type-statics-b}\\
+	\frac{t.\tau_1\ \texttt{pos}\ \ t.\tau_2\ \texttt{pos}}{t.\tau_1\times\tau_2\ \texttt{pos}} \label{eq:positive-type-statics-c}\\
+	\overline{t.\texttt{void}\ \texttt{pos}} \label{eq:positive-type-statics-d}\\
+	\frac{t.\tau_1\ \texttt{pos}\ \ t.\tau_2\ \texttt{pos}}{t.\tau_1+\tau_2\ \texttt{pos}} \label{eq:positive-type-statics-e}\\
+	\frac{\tau_1\ \texttt{type}\ \ t.\tau_2\ \texttt{pos}}{t.\tau_1\rightarrow\tau_2\ \texttt{pos}}\label{eq:positive-type-statics-f}
+	\end{gather}
+\end{subequations}
+在\ref{eq:positive-type-statics-f}中，通过要求定义域在不考虑到类型变量$t$时也是良型，我们把类型变量$t$从定义域中排除了。
+
+阳性类型的泛型扩展的定义与多项式类型很相似，它在函数类型上的动态语义如下：
+\begin{equation}\label{eq:positive-type-dynamics}
+\overline{\texttt{map}^+\{t.\tau_1\rightarrow\tau_2\}(x.e')(e)\mapsto
+\lambda(x_1:\tau_1)\texttt{map}^+\{t.\tau_2\}(x.e')(e(x_1))}
+\end{equation}
+当原式类型是$\tau_1\rightarrow[\rho/t]\tau_2$时，因为$t$不被允许出现在定义域中，结果的类型是
+$\tau_1\rightarrow[\rho'/t]\tau_2$。很容易可以验证非扩张性在正类型的泛型扩展上也成立。
+
+让我们思考一下，为什么让泛型扩张作用在任意类型运算符上而没有对位置的限制是错误的。考虑未对$t$作出限制的类型运算符
+$t.\tau_1\rightarrow\tau_2$，假设$x:\rho\vdash e':\rho'$。当$e$的类型是$[\rho/t]\tau_1\rightarrow[\rho/t]\tau_2$时
+泛型扩展$\texttt{map} \{t.\tau_1\rightarrow\tau_2 \} (x.e')(e)$的类型是$[\rho'/t]\tau_1\rightarrow[\rho'/t]\tau_2$。
+这个扩展会产生如下形式的函数：$$\lambda(x_1:[\rho'/t]\tau_1)\dots(e(\dots(x1)))$$在这个函数中，我们把$e$施加在
+$x_1$转换后的结果上，然后再转换这个结果。可以归纳得到，问题在于我们知道$\texttt{map}\{t.\tau_1\}(x.e')(-)$能把类型为
+$[\rho/t]\tau_1$的值转换成类型为$[\rho'/t]\tau_1$的值，但我们需要反过来让$x_1$有合适的类型来接受$e$
+
+\section{备注}
+
+\noindent 类型运算符的泛型扩展是范畴论中\textit{函子}（\textit{functor}）概念的一个例子。泛型编程本质上是
+利用了多项式类型运算符上函子操作的\textit{函子}编程。
+
+\section*{练习}
+
+\begin{enumerate}
+	\item 证明当$t.\tau\ \texttt{poly}$，且$t'.\tau'\ \texttt{poly}$，那么$t.[\tau/t']\tau'\ \texttt{poly}$。
+	\item 证明常量类型运算符的泛型扩展本质是将返回封闭值自身的恒等函数。更确切的说，证明对于任意
+	类型为$\tau$的值$e$和任意$e'$，表达式$$\texttt{map}\{x.\tau\}(x.e')(e)$$的结果始终是$e$。
+	简化起见，假设积类型与和类型有贪婪的动态语义，并且只考虑多项式类型运算符。当我们把这个结论
+	延伸到阳性类型运算符时出现了什么复杂性？
+	\item 考虑练习 10.1和11.3，数据库模式可以表示为由模式属性集合作为下标的有限积类型，带有这种
+	模式的数据库是一个有限的，由该类型的元组组成的实例序列。证明依照下面的方式，
+	任何数据库的任何作用在在一个或多个列的所有元素上的转换可以通过泛型编程被编程为两个步骤。
+	
+	\begin{enumerate}
+		\renewcommand{\theenumi}{\alph{enumi}}
+		\item 指定一个指示了哪个列要被转换的类型运算符。为了让变换有意义，所有指定的列必须有同样的类型。
+		\item 指定一个作用在列的类型上的变换，它将作用在每个数据库的元组上以得到更新后的数据库。
+		\item 用给定的变换构造一个类型运算符的泛型扩展，然后将它作用到数据库上。
+	\end{enumerate}
+    
+    简化起见，考虑一个属性集为$I$模式，其中，$I$包含了两个类型为\texttt{str}的属性\texttt{first}和
+    \texttt{last}。令$c:\texttt{str}\rightarrow\texttt{str}$是一个根据一些规则大写化字符串的函数。
+    使用泛型编程来让拥有这个模式的数据库的每一行的\texttt{first}和\texttt{last}属性变成大写。
+    
+	\item 鉴于$t$在类型$t\rightarrow\texttt{bool}$中阴性出现，而在类型$(t\rightarrow\texttt{bool})\rightarrow\texttt{bool}$
+	并不仅是阳性出现，我们可以说$t$\textit{非阴性地}（\textit{non-negatively}）出现在后一个类型中。
+	这个例子展示了$t$在函数定义域中出现是阴性的，而在函数的定义域的定义域中出现是非阴性的。并不是每个
+	非阴性的出现都是阳性的。给出一个阴性和非阴性类型运算符的同步归纳定义。使得根据你的定义，类型运算符
+	$t.(t\rightarrow\texttt{bool})\rightarrow\texttt{bool}$是非阴性的。
+	
+	\item 使用练习14.4中要求的阴性与非阴性类型运算符，给出非阴性类型运算符的泛型扩展的定义。具体来说，
+	通过在$\tau$的结构上进行归纳，同步定义$\texttt{map}^{--}\{t.\tau\}(x.e')(e)$和$\texttt{map}^-\{t.\tau\}(x.e)(e')$。
+	$\tau$的静态语义由下列规则给出：
+	\begin{subequations}
+		\begin{gather}
+		\frac{t.\tau\ \texttt{non-neg}\ \ \ \Gamma,x:\rho\vdash e':\rho'\ \Gamma\vdash e:[\rho/t]\tau}
+		{\Gamma\vdash\texttt{map}^{--}\{t.\tau\}(x.e')(e):[\rho'/t]\tau} \\
+		\frac{t.\tau\ \texttt{neg}\ \ \ \Gamma,x:\rho\vdash e':\rho'\ \Gamma\vdash e:[\rho'/t]\tau}
+		{\Gamma\vdash\texttt{map}^{-}\{t.\tau\}(x.e')(e):[\rho/t]\tau} 
+		\end{gather}
+	\end{subequations}
+	注意在这两个规则中$e$与整体的类型的反转。演算出类型运算符$t.(t\rightarrow\texttt{bool})\rightarrow\texttt{bool}$的泛型扩展。
+\end{enumerate}
+
+\section*{备注}
+
+\noindent 原始的术语形式中，函数类型$\tau_1\rightarrow\tau_2$可类比成蕴含$\phi_1\supset\phi_2$。它的经典形式是
+$\neg\phi_1\vee\phi_2$，所以出现在定义域中即为出现在否定式中。
+
+\noindent 通常，我们称“阳性”为“严格阳性”，然后称“非阴性”为“阳性”。
+
+
