@@ -1,0 +1,173 @@
+\chapter{动态语义}
+
+\section{动态语义}
+\par{一种语言的动态语义描述了该语言的程序执行的过程。表现一个语言的动态语义最重要的一种方法是结构化动态语义，它定义了一个转换（执行）系统，归纳描述了程序执行的逐步过程。另一种呈现动态语义的方法称为上下文（运行时）动态语义，它是一种结构化动态语义的变体，使用了另一种特别的转换（执行）规则。当一个程序在定义上与另一个程序等价，它们在语言特定规则下定义的动态语义也是等价的。
+}
+\subsection{转换系统}
+\par{转换系统有以下四种断言：
+\begin{itemize}
+\item[-] s state，表示s是该系统的一个状态。
+\item[-] s final，表示s是该系统的一个状态且s是该系统的一个终态。
+\item[-] s initial，表示s是该系统的一个状态且s是该系统的一个初态。
+\item[-] $s\rightarrow s'$ ，表示s和s'都是该系统的一个状态，且s状态可以一步执行（转换）到$s'$状态。
+\end{itemize}
+实际上，我们默认终态无法通过一步执行转换到其他状态（形式化描述为）：若s final，则不存在$s'$满足$s'$ state且$s\rightarrow s'$。一个无法转换的状态被认为是stuck 的。显然，所有的终态是stuck状态，但也存在非终态的stuck状态。一个转换系统是确定的，当且仅当对于所有满足s state的状态s，最多存在一个$s'$ 满足$s'$ state且$s\rightarrow s'$，否则转换系统是不确定的。
+}
+\par{转换（执行）序列是指一个状态序列$s_0$，...，$s_n$，满足$s_0$ initial，并且对于$0\le i < n$，有$s_i \rightarrow s_{i+1}$。当且仅当不存在s，满足$s'$ state 且$s\rightarrow s'$,这个转换序列是最大化的。当且仅当一个转换序列是最大化的且$s_n$ final，这个序列是完整的。 因此，每个完整的转换序列都是最大化的，但最大化的序列不一定是完整的。 断言s↓ 意味着有从s开始的完整转换序列，也就是说存在$s_0$ 最终使得$s\rightarrow^* s_0$。
+}
+\par{多步执行的断言$s\rightarrow* s0$由以下规则定义：
+$$\frac{}{s\rightarrow^* s'} \eqno(5.1a)$$
+$$\frac{s\rightarrow s'\quad s'\rightarrow^* s''}{s\rightarrow^* s''} \eqno(5.1b)$$
+}
+\par{将归纳规则应用到多步执行的定义中，说明了满足$s\rightarrow^* s'$的P(s,$s_0$)具有以下两种性质：
+\begin{itemize}
+\item[-] P(s,s)
+\item[-] 若$s\rightarrow s'$且P($s'$,$s''$),则有P($s$,$s''$)
+\end{itemize}
+第一点表明P是自反的，第二点表明P对头结点的拓展或者求值是可计算的（计算封闭）。根据性质，很容易证明$\rightarrow^*$ 是自反且可传递的。
+}
+\par{当$n\ge 0$时，n步执行的断言$s\rightarrow^n s'$ 根据以下规则归纳定义：
+$$\frac{}{s\rightarrow^0 s} \eqno(5.2a)$$
+$$\frac{s\rightarrow s'\quad s'\rightarrow^n s''}{s\rightarrow^{n+1} s''} \eqno(5.2b)$$
+
+}
+
+\begin{theorem} 对于所有的状态s和s'，当且仅当存在$k\ge0$满足$s\rightarrow^{k} s'$，有$s\rightarrow^{*} s''$
+\end{theorem}
+
+\begin{proof}[证明:]
+\begin{flalign*}
+\text{($\Rightarrow$)由多步执行的定义归纳得出。}&&\\
+\text{($\Leftarrow$)对k进行数学归纳可得。}&&
+\end{flalign*}
+ \end{proof}
+
+\subsection{结构化动态语义}
+\par{语言E的结构化动态语义由一个状态集合能构成可计算转换序列的转换系统提供。所有的状态都是初态，终态都是可代表完整计算过程的（可计算）值。断言e val，代表e 是一个由以下两个规则归纳定义的值：
+$$\frac{}{num[n]\quad val} \eqno(5.3a)$$
+$$\frac{}{str[s]\quad val} \eqno(5.3b)$$
+状态间的执行断言$e\rightarrow e'$由以下规则归纳定义：
+$$\frac{n_1 + n_2 = n}{plus(num[n_1];num[n_2])\rightarrow num[n]} \eqno(5.4a)$$
+$$\frac{e_1\rightarrow e_1'}{plus(e_1,e_2)\rightarrow plus(e_1',e_2)} \eqno(5.4b)$$
+$$\frac{e_1\quad e_2\rightarrow e_2'}{plus(e_1;e_2)\rightarrow plus(e_1;e_2')} \eqno(5.4c)$$
+$$\frac{s_1 \hat{\quad}s_2=s}{cat(str[s_1];str[s_2])\rightarrow str[s]} \eqno(5.4d)$$
+$$\frac{e_1\rightarrow e_1'}{cat(e_1;e_2)\rightarrow cat(e_1';e_2)} \eqno(5.4e)$$
+$$\frac{e_1\quad val\quad e_2\rightarrow e_2'}{cat(e_1;e_2)\rightarrow cat(e_1;e_2')} \eqno(5.4f)$$
+$$[\frac{e_1\rightarrow e_1'}{let(e_1;x.e_2)\rightarrow let(e_1';x.e_2)}] \eqno(5.4g)$$
+$$\frac{[e_1\quad val]}{let(e_1;x.e_2)\rightarrow [e_1/x]e_2} \eqno(5.4h)$$
+我们忽略了乘法和计算字符串长度的具体规则，因为它们遵循相同的模式。规则 (5.4a), (5.4d)和(5.4h)是有关指令转换的部分，因为它们对应于求值的主要步骤。其他规则是决定指令执行顺序的搜索转换。规则(5.4g)和(5.4h)中括号包含的是let的一个按值代换(传递)，括号外的是按名代换(传递)。值传递在表达式绑定到变量之前对其求值，而名传递以未求值的形式将其绑定。若定义的变量被多次使用，那么值传递可以节省工作量而名传递浪费了很多工作量（在重复的工作上）；相反，如果不使用定义的变量，那么值传递就做了无用功，而名传递可以节约工作量。
+}
+\par{结构化动态语义中的推导序列具有二维结构，其中序列中的步数是其“宽度”，并且每步的推导树是其“高度”。例如，考虑以下求值序列。
+
+\quad$let(plus(num[1];num[2]);x.plus(plus(x;num[3]);num[4])) $
+
+\qquad$\rightarrow let(num[3];x.plus(plus(x;num[3]);num[4])) $
+
+\qquad$\rightarrow  plus(plus(num[3];num[3]);num[4])  $
+
+\qquad$\rightarrow  plus(num[6];num[4])  $
+
+\qquad$\rightarrow  num[10]  $
+
+这个执行序列的每一步都可根据(5.4)中的某个规则推导。例如，上例的第三步转换可由以下推导：
+$$\frac{}{plus(num[3];num[3])\rightarrow num[6]}\eqno(5.4a)$$
+$$\frac{}{plus(plus(num[3];num[3]);num[4])\rightarrow plus(num[6];num[4])}\eqno(5.4b)$$
+其他步骤也可根据已知规则类似推导。
+}
+\par{（语言）E的结构化动态语义的规则归纳原理表明，当$e\rightarrow e'$时，有$\mathcal{P}(e\rightarrow e')$，并且能证明$\mathcal{P}$在规则(5.4)下是可计算的。例如，我们由规则归纳可得出E的结构化动态语义是确定的，这意味着一个表达式可以一步执行转换为至多一个另外的表达式。具体证明需要用到一个简单的关于值的变换的引理。
+\begin{lemma}[值的终态性] 不存在表达式e同时满足e val和(对于某个$e'$)$e\rightarrow e'$
+\end{lemma}
+\begin{proof}[证明:]
+通过规则(5.3)与(5.4)的归纳可得。
+ \end{proof}
+ \begin{lemma}[唯一性] 若$e\rightarrow e'$且$e\rightarrow e''$，那么$e'$和$e''$是$\alpha$等值的。
+\end{lemma}
+\begin{proof}[证明:]
+通过对$e\rightarrow e'$和$e\rightarrow e''$归纳推理（不管是同时还是按照某个先后顺序），对于初等运算（如加法）的应用会有唯一值。
+ \end{proof}
+}
+\par{规则（5.4）举例说明了语言设计的对称（镜像）原则，其中规定语言的消去形式与引入形式相反。搜索规则确定每个消去形式的主要参数，而指令规则指定如何在所有主要参数以引入形式存在时代值到消去形式。 例如，规则（5.4）指定加法的两个参数都是主体，并且指定一旦将其主参数赋值为数后如何代值到加法。对称原则是确保编程语言的核心被正确定义，第6章给出了确切的说明。
+}
+\subsection{上下文动态语义}
+\par{一种结构化动态语义的变体被称为上下文动态语义，在某些时候十分有用。上下文动态语义与结构化动态语义两者没有本质区别，只是风格不同。它的主要思想是将指令步骤分隔为一种叫指令变换（转移）的特殊判断形式，并使用上下文赋值（写值）来形式化定位下一条指令的处理。断言e val没有改变，仍是表示表达式e是一个值。
+}
+\par{（语言）E的指令变换的断言$e\rightarrow e'$通过以下规则定义（对数值乘法以及求字符串长度做与之前相同的处理）：
+$$\frac{m+n=p}{plus(num[m];num[n])\rightarrow num[p]}\eqno(5.5a)$$
+$$\frac{s\hat{\quad}t=u}{cat(str[s];str[t])\rightarrow str[u]}\eqno(5.5b)$$
+$$\frac{}{let(e_1;x.e_2)\rightarrow [e_1/x]e_2}\eqno(5.5c)$$
+断言$\varepsilon$ ectxt 表示如何在一个较大的表达式中决定下一条执行指令的位置。 下一个指令步骤的位置由写入的“孔”指定，下一条指令放置在其中，我们将在稍后详细说明。 （为简洁起见，省略了乘法和字符串长度的规则，因为它们的处理方式相似。）
+$$\frac{}{o\quad ectxt}\eqno(5.6a)$$
+$$\frac{\varepsilon_1\quad ectxt }{plus(\varepsilon_1;e_2)\quad ectxt}\eqno(5.6b)$$
+$$\frac{e_1\quad val \quad \varepsilon_2}{plus(e_1;\varepsilon_2)\quad ectxt}\eqno(5.6c)$$
+上下文赋值的第一条规则指明下一条指令可能发生在“这里”，然后产生一个“孔”。剩下的规则和结构化动态语义一一对应。 例如，规则（5.6c）规定，在一个表达式Plus （e1; e2），如果第一个参数e1是值，则下一个指令步骤（如果有的话）发生在第二个参数e2处。上下文赋值是通过用要执行的指令替换孔来完成实例化的模式。断言$e'=\varepsilon\{e\}$表示，$e'$是用表达式e替换上下文赋值$\varepsilon$中的孔得到的结果。它由以下规则定义：
+$$\frac{}{e=o\{e\}}\eqno(5.7a)$$
+$$\frac{e_1=\varepsilon_1\{e\}}{plus(e_1;e_2)=plus(\varepsilon_1;e_2)\{e\}}\eqno(5.7b)$$
+$$\frac{e_1\quad val \quad e_2=\varepsilon_2\{e\}}{plus(e_1;e_2)=plus(e_1;\varepsilon_2)\{e\}}\eqno(5.7c)$$
+上下文赋值的每一种形式都对应一个规则。每步一定要用e中e的结果来填补孔，不然我们会递归运行上下文赋值。
+}
+\par{最后，（语言）E的上下文动态语义可由一个规则定义：
+$$\frac{e=\varepsilon\{e_0\}\quad e_0\rightarrow e_0' \quad e'=\varepsilon\{e_0'\}}{e\rightarrow e'}\eqno(5.8)$$
+因此，从e到$e'$的转换包括（1）将e分解为一个赋值的上下文和一条指令（2）执行该指令，以及（3）将该指令的执行结果替换为e得到$e'$。
+}
+\par{结构化动态语义和上下文动态语义定义了相同的转换关系，为了方便证明，我们记$e\rightarrow_s e'$是由结构化动态语义定义的转换，$e\rightarrow_c e'$是由上下文动态语义定义的转换。
+}
+\par{
+\begin{theorem} $e\rightarrow_s e'$当且仅当$e\rightarrow_c e'$
+\end{theorem}
+\begin{proof}[证明:]
+($\Rightarrow$)通过对规则(5.4)的规则归纳执行。只需要展示每个情况下的上下文赋值$\varepsilon$使得$e=\varepsilon\{e_0\}$,$ e'=\varepsilon\{e_0'\}$, 且$e_0$$\rightarrow e_0' $。例如：对于规则(5.4a)令$\varepsilon$=o，标记$e\rightarrow e'$。对于规则(5.4b)，可以归纳证明存在一个上下文赋值$\varepsilon_1$ 使得$e_1=\varepsilon_1\{e_0\}$，$ e_1'=\varepsilon_1\{e_0'\}$且$e_0\rightarrow e_0' $。令$\varepsilon=plus(\varepsilon_1;e_2)$并标记$e=plus(\varepsilon;e_2)\{e_0\}$且\\$e'=plus(\varepsilon ;e_2)\{e_0'\}$,$e_0\rightarrow e_0'$
+
+($\Leftarrow$)注意若$e\rightarrow_c e'$，那么存在上下文赋值$\varepsilon$使得$e=\varepsilon\{e_0\}$,$ e'=\varepsilon\{e_0'\}$,且$e_0\rightarrow e_0' $。我们通过对规则(5.7)的规则归纳证明$e\rightarrow_s e'$。例如：对于规则(5.7a)，$e_0$是\\e，$e_0'$是$e'$。得到$e\rightarrow_s e'$。对于规则(5.7b)，有$\varepsilon=plus(\varepsilon_1;e_2)$，$e_1=\varepsilon_1\{e_0\}$，\\$e_1'=\varepsilon_1\{e_0'\}$,且$e_1\rightarrow_s e_1'$，因此e是$plus(e_1;e_2)$，$e'$是$plus(e_1';e_2)$，故根据规则(5.7b)\\有$e\rightarrow_s e'$。
+ \end{proof}
+ }
+ \par{由于这两个变换的断言是吻合的，上下文动态语义可以看做是结构化动态语义的另一种表达，它相对于结构化动态语义有两个优势：一是相对高级，一是相对较简洁。高级的优势来源于用更简单的形式书写规则(5.8)：$$\frac{e_0\rightarrow e_0'}{\varepsilon\{e_0\}\rightarrow \varepsilon\{e_0'\}}\eqno(5.9)$$
+ 这种表述非常简单，因为它没有明确地表达一个表达式如何分解为一个上下文赋值和一个可约表达式。上下文动态语义的更深层次的优势在于，所有的变换都是在完整的程序之间。我们无需考虑可观察类型之外的任何类型之间的变换，这简化了某些论证，例如引理47.16的证明。
+ }
+\subsection{方程式动态语义}
+\par{语言的动态语义的另一种表述是等式推导的计算形式，很多是初等代数形式。例如：在代数中，我们使用熟悉的加法和乘法定律，通过简单的计算和重组，可以证明多项式$x^2+2x+1$ 和$（x + 1）^2$是等价的。给定其变量的值，相同的定律足以确定任何多项式的值。，例如，我们可以用2来代入多项式$x^2 + 2x + 1 $中的x，并计算出$2^2 + 2*2 + 1 = 9$，也确实是$（2 + 1）^2$的值。 因此我们得到一个计算模型，其中一个给定变量值的多项式的值由它的替换形式和简化形式来确定。
+}
+\par{相似的想法产生了E中表达式的定义或计算上等价的概念，我们把它写作$\mathcal{X} | \Gamma \vdash e \equiv e' : \tau$，其中对于每一个$x\in \mathcal{X}$，$\Gamma$ 包含了一个$x : \tau$形式的假设。我们只考虑良好类型的表达式在定义上的等价，所以当考虑断言$\Gamma \vdash e \equiv e' : \tau$ 时，我们默认$\Gamma \vdash e : \tau$和$\Gamma \vdash e' : \tau$。在这里，通常情况下，当假设$\Gamma$可决定变量$\mathcal{X}$的形式时，我们一般不把$\mathcal{X}$写明。
+}
+\par{在let的按名解释下，在E中表达式的定义等价由以下规则归纳定义：
+$$\frac{}{\Gamma \vdash e \equiv e : \tau}\eqno(5.10a)$$
+$$\frac{\Gamma \vdash e' \equiv e : \tau}{\Gamma \vdash e \equiv e' : \tau}\eqno(5.10b)$$
+$$\frac{\Gamma \vdash e \equiv e' : \tau \quad \Gamma \vdash e' \equiv e'' : \tau}{\Gamma \vdash e \equiv e'' : \tau}\eqno(5.10c)$$
+$$\frac{\Gamma \vdash e_1 \equiv e_1' : num \quad \Gamma \vdash e_2 \equiv e_2' : num}{\Gamma \vdash plus(e_1;e_2) \equiv plus(e_1';e_2'):num}\eqno(5.10d)$$
+$$\frac{\Gamma \vdash e_1 \equiv e_1' : str \quad \Gamma \vdash e_2 \equiv e_2' : str}{\Gamma \vdash cat(e_1;e_2) \equiv cat(e_1';e_2'):str}\eqno(5.10d)$$
+$$\frac{\Gamma \vdash e_1 \equiv e_1' : \tau_1 \quad \Gamma ,x:\tau_1 \vdash e_2 \equiv e_2' : \tau_2}{\Gamma \vdash let(e_1;x.e_2) \equiv let(e_1';x.e_2'):\tau_2}\eqno(5.10f)$$
+$$\frac{n_1+n_2=n}{\Gamma \vdash plus(num[n_1];num[n_2]) \equiv num[n]:num}\eqno(5.10g)$$
+$$\frac{s_1\hat{\quad} s_2=s}{\Gamma \vdash cat(str[s_1];str[s_2]) \equiv str[s]:str}\eqno(5.10h)$$
+$$\frac{}{\Gamma \vdash let(e_1;x.e_2) \equiv [e_1/x]e_2:\tau}\eqno(5.10i)$$
+规则（5.10a）至（5.10c）说明定义相等是一种等价关系（自反、传递、对称）。规则(5.10d)）到（5.10f）说明它是一个同余关系，这意味着它与语言中所有形式的表达式的结构兼容。规则（5.10g）到（5.10i）定义了E的主要数据结构的语义。我们说规则（5.10）定义了在规则（5.10g），（5.10h）和（5.10i）下可计算的最强同余关系。
+}
+\par{规则（5.10）通过类似于高中代数的推导来计算表达式的值。 例如，我们可以通过应用规则（5.10）导出这个等式：
+$$let \quad x \quad be \quad 1+2 \quad in \quad x +3+4 \equiv 10 : num $$
+一般而言，可能有很多不同的方法来解同一个方程，但是我们只需要找到一个可以进行求值的推导。定义平等是一个相对较弱的关系，很多我们直观上认为是真的等值无法从规则(5.10)推出。一个典型的例子是：
+$$x_1:num \quad x_2:num \vdash x_1+x_2 \equiv x_2+x_1 : num \eqno(5.11)$$
+这直观地表达了加法的交换性。虽然我们不在此证明，但这个式子无法从规则(5.10)中推导出。但我们可以推导出它所有的可计算实例：
+$$n_1 | n_2 \equiv n_2 | n_1 : num \eqno(5.12)$$
+这里$n_1$和$n_2$是特定数字。
+}
+\par{
+通过等式（5.12）给出的一般的法则（如方程（5.11））和它的所有实例之间的“差距”，可以通过在等价关系概念中加入数学归纳的原理来弥补。 这种等价的概念有时被称为语义等价，因为它表现了一种通过表达式的虚拟动态语义而产生的关系。 （在第46章中，对于特定语言的语义等价进行了严格地定义。）
+}
+\par{
+\begin{theorem} 对于语言E中的表达式，关系$e \equiv e':\tau $成立当且仅当存在$e_0\quad val$，使得$e\rightarrow^* e_0$且$e'\rightarrow^* e_0$
+\end{theorem}
+\begin{proof}[证明:]
+($\Rightarrow$)因为每个转换步骤都是一个有效的等式，所以证明是直接的。
+
+($\Leftarrow$)由规则(5.10)的归纳规则可证：若$x_1:\tau_1,...,x_n:\tau_n  \vdash e\equiv e':\tau$，那么当$e_1:\tau_1,e_1':\tau_1,...,e_n:\tau_n,e_n':\tau_n $满足对于$1 \le i \le n $,表达式$e_i$和$e_i'$都求值为同一个值$v_i$时，存在$e_0 val$使得
+$$ [e_1,e_2,...,e_n/x_1,x_2,...,x_n]e\rightarrow^*e_0$$且$$ [e_1',e_2',...,e_n'/x_1,x_2,...,x_n]e'\rightarrow^*e_0$$
+ \end{proof}
+}
+\subsection{小结}
+\par{使用转换系统来指定程序的行为可以追溯到Church和Turing在可计算性方面的早期工作。图灵的方法强调了一个抽象机器的概念，它包含一个有限的程序和无限的内存。根据程序中的指令更改内存来进行计算。如SECD机器（Landin，1965）的很多关于编程语言操作语义的早期工作，强调了机器模型。Church的方法强调表达计算的语言，由程序自身确定执行间隔，而不是基于诸如内存或磁带之类的辅助设备的通信。在本书中被大量使用的Plotkin的结构操作语义（Plotkin，1981）的经典表述，也受到了Church和Landin思想的启发（Plotkin，2004）。由Felleisen和Hieb （1992）提出的上下文语义可以被看作是“搜索规则”被“上下文匹配”替代的结构语义的替代形式。计算被视为等价推理可以追溯到 Herbrand, $G\ddot{o}del$, 和Church的早期工作。
+}
+
+\subsection*{练习}
+\begin{itemize}
+\item[5.1] 证明：若$s\rightarrow^* s'$，$s'\rightarrow^* s''$那么$s\rightarrow^* s''$
+\item[5.2] 结合提示，完成定理5.1剩余的证明。
+\item[5.3] 结合提示，完成定理5.5剩余的证明。
+\end{itemize}
