@@ -1,0 +1,204 @@
+\newtheorem{rules}{{规则}}
+\chapter{归纳定义}
+归纳定义是学习程序设计语言时的一个必不可少的工具，在本章中我们将引出归纳定义的基本框架并给出一些用例。一个归纳定义由一组\textit{规则}（rules）组成，这些规则用于推导形式多样的\textit{判断}（judgments）或称为\textit{断言}（assertions）。
+ 
+判断是一些关于一个或多个抽象绑定关系的语句，这些规则明确表示了一个判断有效的充分必要条件，因此也完全决定了这个判断的含义。
+\section{判断}
+我们从关于一个抽象绑定树的\textit{判断}（或称为\textit{断言}）的概念开始。我们将使用到多种形式的判断，包括如下例子：
+\begin{center}
+	\begin{tabular}{ll}
+	$n_{1} + n_{2} = n$ & $n$ is the sum of $n_{1}$ and $n_{2}$ 
+	%待补全
+	\end{tabular}
+\end{center}
+一个判断陈述了一个或多个抽象绑定树具有某个性质，或者与另一个抽象绑定树具有什么样的关系。这个性质或者关系本身称为\textit{判断形式}（judgment form），陈述了一个或多个对象具备这个性质或关系的判断称为这个判断形式的\textit{实例}（instance）。一个判断形式也被称为一个\textit{谓词}（predicate），构成实例的对象是它的\textit{主语}（subjects）。我们将声称对象$a$具有$J$性质记为$aJ$或$Ja$，对应地我们有时将判断形式$J$记为$-J$或$J-$，用一个短横来指明J缺省的参数。当没有必要强调判断的主语时，我们用来表示一个不作特别规定的判断，也就是作为某个判断形式的实例。为了增强某些特定的判断形式的可读性，我们将使用一些上述例子中展示的前缀、中缀或混合标记。
+\section{推理规则}
+一个判断形式的\textit{归纳定义}（inductive definition）由该形式的一组\textit{规则}组成 \\
+$\frac{J_{1} ... J_{k}}{J} $ \\
+其中$J$和$J_{1} ... J_{k}$是定义该形式的所有判断。水平线上方的判断称为该规则的\textit{前提}（premises），水平线下方的判断称为该规则的\textit{结论}（conclusion）。如果一个规则没有任何前提（也就是说等于零），那么这个规则称为\textit{定理}（axiom），否则称它为\textit{正常规则}（proper rule）。
+
+一个推理规则可看作陈述了某些前提对于一个结论而言是\textit{充分}的：$J_{1} ... J_{k}$成立就足以让$J$成立。当$k$等于零时，一个规则陈述了它的结论无条件成立。要注意的是，通常会有关于同一结论的许多规则，每个规则都陈述了该结论的一系列充分条件。因此，当一个规则的结论成立时，该规则的前提不一定成立，因为这个结论可能是通过其他规则推导出来的。
+
+例如下述规则形成了关于判断规则$- nat$的一个归纳定义：
+\begin{align*}
+\frac{}{zero nat} \\
+\frac{a nat}{succ(a) nat}
+\end{align*}
+这些规则指定了当$a$是\textbf{zero}，或者$a$是\textbf{succ}($b$)且$b$ \textbf{nat}成立时，$a$ \textbf{nat}成立。穷举这些规则能得出当且仅当$a$是一个自然数时$a$ \textbf{nat}成立。
+
+类似的，下述规则组成了判断形式$-$ \textbf{tree}的一个归纳定义：
+\begin{align*}
+\frac{}{\textbf{empty tree}} \\
+\frac{a_{1} \textbf{tree}   a_{2} \textbf{tree}}{\textbf{node}(a_{1};a_{2})\textbf{tree}}
+\end{align*}
+这些规则指定了当$a$是\textbf{empty}，或者$a$是\textbf{node}($a_{1};a_{2}$)其中$a_{1}$ \textbf{tree}且$a_{2}$ \textbf{tree}时，$a$ \textbf{tree}成立。穷举这些规则能得出$a$是一棵二叉树，即它要么为空，要么是一个拥有两个子节点的节点，其子节点也各是一棵二叉树。
+
+判断形式$a$\quad\textbf{is} $b$表达了与两个变元等价，所以$a$\quad\textbf{nat}和$b$\quad\textbf{nat}可以归纳地由下列规则定义：
+\begin{align*}
+\frac{}{\textbf{zero is zero}} \\
+\frac{a \textbf{is} b}{\textbf{succ}(a)\textbf{is succ(b)}}
+\end{align*}
+在上述的每个例子中，我们利用了一些记号惯例以使用有限数量的形式或者称为\textit{规则模式}（rule schemes）来指定一族无限数量的规则。例如规则（2.2b）是一个规则模式，对象$a$的每种选取方式形成的规则被称为该规则模式的一个\textit{实例}。我们将依靠上下文决定一个规则为\textit{特定的}对象$a$作出声明，还是作为一个规则模式指定了\textit{选取任一}对象后形成的规则。
+
+一组规则被视作决定了对于其\textit{下封闭}（closed under）的或称作\textit{遵守}（respects）这些规则的\textit{最强的}判断形式。对于一些规则下封闭的含义是这些规则能\textit{充分}证明该判断有效：\textit{如果}存在一种方法利用给定的规则得到$J$，则$J$有效。对于一些规则下封闭的\textit{最强的}的判断形式的含义是所有的规则都是\textit{必要的}：\textit{仅当}能通过运用这些规则得出$J$时，$J$才有效。规则的充分性意味着我们能够通过构造这些规则推导出$J$来证明$J$有效，必要性意味着我们可以利用\textit{规则归纳}（rule induction）来推出$J$。
+\section{推导}
+通过展示其推导过程，就可以证明一个由归纳方式定义的判断的有效性。一个判断的推导过程是规则的一个有限的组合，由定理开始直到以这个判断结束。它可以被看作一棵树，其中的每个节点是一个规则，其子节点都是这个规则的前提的推导过程。我们有时将$J$的推导过程称为$J$这一归纳定义的判断的有效性的证据。
+
+我们通常把推导过程描述为以结论为底端的树，其中每个节点的子节点都是该节点上出现的规则的前提的证据。因此，如果有 \\
+$\frac{J_{1} ... J_{k}}{J} $ \\
+是一个推理规则，并且$\bigtriangledown_{1},...,\bigtriangledown_{k}$是其前提的推导过程，则 \\
+$\frac{\bigtriangledown_{1} ... \bigtriangledown_{k}}{J} $ \\
+是其结论的推导过程。特别的，如果$k=0$，则这个节点没有子节点。
+
+例如，这是\textbf{succ}(\textbf{succ}(\textbf{succ}(\textbf{zero})))\quad\textbf{nat}的一个推导过程: \\
+$\frac{\frac{\frac{}{\textbf{zero nat}}}{\textbf{succ}(\textbf{zero})\quad\textbf{nat}}}{\frac{\textbf{succ}(\textbf{succ}(\textbf{zero}))\quad\textbf{nat}}{\textbf{succ}(\textbf{succ}(\textbf{succ}(\textbf{zero})))\quad\textbf{nat}}} $\\
+类似地，这是\textbf{node$($node$($empty$;$empty$);$empty$)$ tree}的一个推导过程：\\
+$\frac{\frac{\frac{}{\textbf{empty tree}}\quad\frac{}{\textbf{empty tree}}}{\textbf{node$($empty$;$empty$)$ tree}}\quad\frac{}{\textbf{empty tree}}}{\textbf{node$($node$($empty$;$empty$);$empty$)$ tree}}$ \\
+为了说明一个归纳定义的判断是可推导的，我们只需要找到它的一个推导过程。寻找推理过程的两个主要方法分别是\textit{前向链接}（forward chaining）和\textit{反向链接}（backward chaining），也分别称作\textit{自底向上构造}(bottom-up construction)和\textit{自顶向下构造}（top-down construction）。前向链接从定理开始向前推导到目标结论，而反向链接从目标结论开始向后寻找定理。
+
+更准确地说，前向链接搜索方法维持一个可推导的判断的集合，然后持续通过将那些前提都已在集合中的规则的结论加入集合来扩展它。起初这个集合为空，这个过程持续到目标判断出现在此集合中为止。假设每一步都将所有规则分析一遍，前向链接将最终找到任何可推导判断的推导过程，但它在算法上（通常）无法决定何时终止推导并得出目标判断不可推导的结论。我们可能一直向可推导集合增加新的判断但永远无法达到目标。如何决定一个给定的判断是否可推导是一个关于理解规则的全局性质的问题。
+
+前向链接是没有方向的，因为它在决定每一步如何前进时没有考虑最终目标。相比之下反向链接是目标导向的，它维持一个当前目标队列，辨别应该寻找哪些推导过程。起初这个集合只包含我们希望推导的那一个判断，然后在每一步中我们从队列中移除一个判断并分析那些以这个判断为结论的规则。我们将一个这样的规则的所有前提都加入到队列末端，然后继续进入下一步（从队头再移除一个判断）。如果这样的规则不止一个，那么这个过程必须以相同的起始队列为每个可选的规则重复一次。当队列为空时这个过程即可终止，所有目标都已经达到，所有还在等待分析的可选规则都可以被舍弃。和前向链接一样，反向链接最终也会找到任何可推导判断的推导过程，但通常没有通用的算法上的方法能决定当前目标是否可推导。如果目标不可推导，我们可能徒劳地往目标集合里添加越来越多判断，而永远无法达到所有目标都被满足的状态。
+\section{规则归纳}
+因为一个归纳定义指定了对于一个规则集合下封闭的最强的判断形式，我们将可以通过\textit{规则归纳}（rule induction）来推理它们。规则归纳的原则是说明$\mathcal{P}$对于定义判断形式$\mathcal{J}$的规则是\textit{下封闭}的，或者$\mathcal{P}$\textit{遵守}这些规则，就足以说明性质$a$$\mathcal{P}$在$a$$\mathcal{J}$可推导时成立。更准确地说，如果当$\mathcal{P}$$(a_{1}),...,$$\mathcal{P}$($a_{k}$)成立时$\mathcal{P}$($a$)成立，则性质$\mathcal{P}$遵守这一规则：\\
+$\frac{a_{1}\mathcal{J} ... a_{k}\mathcal{J}}{a\mathcal{J}}$ \\
+其中的假设$\mathcal{P}$$(a_{1}),...,$$\mathcal{P}$($a_{k}$)称为这个推理的\textit{归纳假设}（inductive hypotheses），而$\mathcal{P}$($a$)称为\textit{归纳结论}（inductive conclusion）。
+
+规则归纳的原则简单表达了一种归纳定义的判断形式的定义——对于组成这个定义的规则下封闭的最强的判断形式。因此，这个由一个规则集合定义的判断形式满足（a）对于这些规则下封闭，（b）对于任何其他在这些规则下封闭的性质而言是充分的。前者意味着一个推导过程是该判断有效性的证据，后者意味着我们可以通过规则归纳来推导一个归纳定义的判断形式。
+
+对于特定的规则（2.2）而言，规则归纳的原则陈述了为了说明当$a$\textbf{nat}成立时有$\mathcal{P}$($a$)，只需要说明：
+\begin{align*}
+	1.\mathcal{P}(\textbf{zero})。 \\
+	2.\text{对于每个}a，如果\mathcal{P}(a)，则\mathcal{P}(\textbf{succ}(a))。\\
+\end{align*}
+这些条件的充分性与\textit{数学归纳法}（mathematical induction）的原则类似。
+
+类似地，规则（2.3）的规则归纳陈述了如果要说明当$a$\textbf{tree}时有$\mathcal{P}$($a$)，只需要说明：
+\begin{align*}
+	1.\mathcal{P}(\textbf{empty})。 \\
+	2.对于每个a_{1}和a_{2}，如果\mathcal{P}(a_{1})且\mathcal{P}(a_{2})，则\mathcal{P}(\textbf{node}(a_{1};a_{2}))。
+\end{align*}
+这些条件的充分性称为\textit{树归纳法}（tree induction）的原则。
+
+我们同时也通过规则归纳说明了一个自然数的前辈也是一个自然数。尽管这好像是不言而喻的，但这个例子的要点是展示如何从初始的规则推导出它。
+\begin{lemma}
+如果\textbf{succ}($a$)\quad\textbf{nat}，则$a$ \textbf{nat}。
+\end{lemma}
+\begin{proof}
+只需要说明$\mathcal{P}$($a$)描述了对于规则（2.2），$a$ \textbf{nat}且$a=$\textbf{succ}($b$)蕴含$b$ \textbf{nat}是下封闭的。
+\begin{rules}
+[2.2a]显然\textbf{zero nat}，并且第二个条件在无意义下成立，因为\textbf{zero}不是\textbf{succ}(\textbf{-})的形式。
+\end{rules}
+\begin{rules}
+[2.2b]归纳地，我们知道$a$ \textbf{nat}以及如果$a$是\textbf{succ}($b$)的形式则$b$ \textbf{nat}。我们将可以立即说明\textbf{succ}($a$)\quad\textbf{nat}，
+\end{rules}，并且如果\textbf{succ}($a$)是\textbf{succ}($b$)的形式，则$b$ \textbf{nat}，我们依据归纳假设有$b$ \textbf{nat}。
+\end{proof}
+通过规则归纳，我们展示了这个等价性，即规则（2.4）的定义是可逆的。
+\begin{lemma}
+如果$a$ \textbf{nat}，则$a$\textbf{is}$a$。
+\end{lemma}
+\begin{proof}
+通过对规则（2.2）的规则归纳：
+\begin{rules}
+[2.2a]应用规则（2.4a）我们得到\textbf{zero is zero}
+\end{rules}
+\begin{rules}
+[2.2b]假设$a$\textbf{is}$a$，应用规则（2.4b）后有\textbf{succ}($a$)\textbf{is succ}($a$)
+\end{rules}
+\end{proof}
+类似地，我们可以说明后继（successor）运算是单射。
+\begin{lemma}
+如果\textbf{succ}($a_{1}$)\textbf{is succ}($a_{2}$)，则$a_{1}$\textbf{is}$a_{2}$。
+\end{lemma}
+\begin{proof}
+类似引理2.1的证明
+\end{proof}
+\section{迭代的和联合的归纳定义}
+归纳定义经常是\textit{迭代的}（iterated），意味着一个归纳定义是建立在另一个之上。在一个迭代的归纳定义中，一个规则的前提 \\
+$\frac{\mathcal{J_{1} ... J_{k}}}{\mathcal{J}} $\\
+可能是之前已经定义的判断形式的实例或者正在被定义的这个判断形式的实例。例如下述规则定义了判断形式$- \textbf{list}$，它描述了$a$是一个自然数的表（list）：
+\begin{align*}
+\frac{}{\texttt{nil list}} \\
+\frac{a\textbf{nat}   b\textbf{list}}{\texttt{cons}(a;b)\quad\textbf{list}}
+\end{align*}
+规则（2.7b）的第一个前提是之前已定义的判断形式$a$\textbf{nat}的一个实例，而前提$b$\textbf{list}是这些规则正在定义的判断形式的一个实例。
+
+经常有两个或更多的判断由一个\textit{联合归纳定义}（simultaneous inductive definition）来定义。一个联合归纳定义由一个规则集合组成，这些规则能推导出数个不同的判断形式的实例，这些实例可能出现在其中某个规则的前提中。因为每个判断形式的定义都可能涉及到其他判断形式的实例，所以没有哪一个判断形式能在其他判断形式之前定义。因此我们必须理解到所有这些判断形式是由整个规则集合一次性定义的。与之前一样，这些判断形式是对于这个规则集合下封闭的最强判断形式。因此规则归纳的原则仍然能够成立，尽管形式上我们需要同时证明其中每一个被定义的判断形式的性质。
+
+例如考虑下面这些规则，它们构造了判断$a$\textbf{even}和$a$\textbf{odd}的联合归纳定义，分别描述$a$是一个奇自然数和$a$是一个偶自然数：
+\begin{align*}
+\frac{}{\textbf{zero even}} \\
+\frac{b\texttt{odd}}{\textbf{succ}(b)\quad\textbf{even}} \\
+\frac{a\textbf{even}}{\texttt{succ}(a)\quad\texttt{odd}} \\
+\end{align*}
+对应这些规则的规则归纳原则能同时描述当$a$\textbf{even}时有$\mathcal{P}$($a$)和当$b$\textbf{odd}时有$\mathcal{Q}$($b$)，只需要说明：
+\begin{align*}
+1.\mathcal{P}(\textbf{zero})；
+2.如果\mathcal{Q}(b)，则\mathcal{P}(\textbf{succ}(b))；
+2.如果\mathcal{P}(a)，则\mathcal{Q}(\textbf{succ}(a))。
+\end{align*}
+例如我们能使用联合规则归纳来证明（1）如果$a$\textbf{even}，则要么$a$是\textbf{zero}，要么$a$是\texttt{succ}($b$)且$b$\textbf{odd}，以及（2）如果$a$\textbf{odd}，则$a$是\texttt{succ}($b$)且$b$\textbf{even}。我们定义了当且仅当$a$是\textbf{zero}或$a$是\textbf{succ}($b$)且$b$\textbf{odd}时$\mathcal{P}$($a$)成立，当且仅当$b$是\textbf{succ}($a$)且$a$\textbf{even}时$\mathcal{Q}$($b$)成立。我们的目标结果遵循规则归纳，因为我们能证明下述事实：
+\begin{align*}
+1.\mathcal{P}(\textbf{zero})成立，因为\textbf{zero}是\textbf{zero}；\\
+2.如果有\mathcal{Q}(b)，则\textbf{succ}(b)是\textbf{succ}(b')且\mathcal{Q}(b')对于b'成立。把b'看作b然后应用归纳假设。 \\
+3.如果有\mathcal{P}(a)，则\textbf{succ}(a)是\textbf{succ}(a')且\mathcal{P}(a')对于a'成立。把a'看作a然后应用归纳假设。
+\end{align*}
+\section{用规则来定义函数}
+归纳定义的一个普遍用处是通过归纳地定义输入与输出的关系\textit{图}来定义函数，然后说明这个关系在给定输入时唯一确定了输出。例如我们可以将自然数上的加法函数定义为关系\textbf{sum}($a;b;c$)，意图表示$c$是$a$与$b$的和：
+\begin{align*}
+\frac{b\texttt{nat}}{\textbf{sum}(\textbf{zero};b;b)} \\
+\frac{}{}    %待补全
+\end{align*}  
+这些规则在自然数中定义了一个三元（3个参数的）关系\textbf{sum}($a;b;c$)。我们可以说明在这个关系中$c$由$a$和$b$决定。
+\begin{theorem}
+对于每个$a$\texttt{nat}和$b$\texttt{nat}，存在唯一的一个$c$\texttt{nat}使得有\textbf{sum}($a;b;c$)。
+\end{theorem}
+\begin{proof}
+证明分为两部分：
+\begin{align*}
+1.（存在性）如果a\texttt{nat}且b\texttt{nat}，则存在c\texttt{nat}使得有\textbf{sum}(a;b;c)。
+2.（唯一性）如果\textbf{sum}(a;b;c)且\textbf{sum}(a;b;c’)，则c\texttt{is}c'。
+\end{align*}
+作为存在性的证明，不妨设$\mathcal{P}$($a$)是命题\textit{如果$b$\texttt{nat}则存在$c$\texttt{nat}使得有\textbf{sum}($a;b;c$)}。我们通过对规则（2.2）的规则归纳来证明如果$a$\textbf{nat}则$\mathcal{P}$($a$)。有两种情况需要考虑：
+\begin{rules}
+[2.2a]我们将要说明$\mathcal{P}$(\textbf{zero})。假设$b$\texttt{nat}且把$c$看作$b$，我们通过规则（2.9a）得到\textbf{sum}($\textbf{zero};b;c$)。
+\end{rules}
+\begin{rules}
+[2.2b]假设有$\mathcal{P}$($a$)，我们将要说明$\mathcal{P}$(\textbf{succ}($a$))。这个假设说明了如果$b$\texttt{nat}则存在$c$使得\textbf{sum}($a;b;c$)，我们将说明如果$b'$\texttt{nat}则存在$c'$使得\textbf{sum}($\textbf{succ}(a);b';c'$)。首先设$b'$\texttt{nat}，然后通过归纳得知存在$c$使得\textbf{sum}($a;b';c$)，再将$c'$看作\textbf{succ}($c$)，运用规则（2.9b）我们就能得到目标\textbf{sum}($\textbf{succ}(a);b';c'$)。
+\end{rules}
+为了证明唯一性，我们需要通过基于规则（2.9）的规则归纳来证明\textit{如果\textbf{sum}($a;b;c_{1}$)且\textbf{sum}($a;b;c_{2}$)，则$c_{1}$\textbf{is}$c_{2}$}。
+\begin{rules}
+[2.9a]我们有$a$是\textbf{zero}和$c_{1}$是$b$。通过对同样规则的内部归纳，我们可以说明如果\textbf{sum}(\textbf{zero}$;b;c_{2}$)则$c_{2}$是$b$。通过引理2.2我们得到$b$\textbf{is}$b$。
+\end{rules}
+\begin{rules}
+[2.9b]我们有$a$是\textbf{succ}($a'$)和$c_{1}$是\textbf{succ}($c'_{1}$)，并且\textbf{sum}($a';b;c'_{1}$)。通过对相同规则的内部归纳，我们可以说明如果\textbf{sum}($a;b;c_{2}$)则$c_{2}$是\textbf{succ}($c'_{2}$)并使得\textbf{sum}($a';b;c'_{2}$)。通过外部归纳假设有$c_{1}'$\textbf{is}$c_{2}'$，因此$c_{1}$\textbf{is}$c_{2}$
+\end{rules}
+\end{proof}
+\section{笔记}
+Aczel（1977）提出了对于归纳定义的一个详尽的解释，我们当前的解释正基于此。二者的一个明显区别是我们通过变元而不是自然数来分析对判断的归纳定义，就像在第一章中定义的那样。对于判断的强调是受Martin-L?f对于判断的逻辑（Martin-L?f，1983，1987）的启发。
+
+\Large{练习}
+\newtheorem{excs}{}[chapter]
+\begin{excs}
+给定对于判断\textbf{max}($m;n;p$)的一个归纳定义，其中$m$\texttt{nat}，$n$\texttt{nat}以及$p$\texttt{nat}，含义是$p$是$m$和$n$中的较大者。证明每个$m$和$n$都通过这个判断关联了唯一一个$p$。
+\end{excs}
+\begin{excs}
+考虑如下规则，它们定义了一个判断\textbf{hgt}($t;n$)描述一棵二叉树$t$具有\textit{高度}$n$。
+\begin{center}
+$\frac{}{\textbf{hgt}(\textbf{empty};\textbf{zero})}$ \\
+$\frac{\textbf{hgt}(t_{1};n_{1})\qquad\textbf{hgt}(t_{2};n_{2})\qquad\textbf{max}(n_{1};n_{2};n)}{\textbf{hgt}(\textbf{node}(t_{1};t_{2});\textbf{succ}(n))}$
+\end{center}
+证明判断\textbf{hgt}定义了把树映射到自然数的函数。
+\end{excs}
+\begin{excs}
+给出\textit{有序可变树}的一个归纳定义，其节点拥有有限但不固定数量的子节点，子节点按特定的从左到右顺序排列。你的答案应该包括对于两个判断的联合定义，分别是$t$\textbf{tree}描述$t$是一个可变树，和$f$\textbf{forest}描述$f$是一个由可变树组成的“森林”（有限序列）。
+\end{excs}
+\begin{excs}
+给出练习2.3中定义的可变树的高度的归纳定义。你的定义应该联合定义一个辅助的判断，利用它来定义可变树森林的高度。
+\end{excs}
+\begin{excs}
+给出\textit{二进制自然数}的归纳定义，它是零，一个二进制数的两倍，或者一个二进制数的两倍加一。这个表示方法是关于其表示的自然数呈对数关系而不是线性关系的。
+\end{excs}
+\begin{excs}
+给出练习2.5中定义的二进制自然数的加法的归纳定义。\textit{提示}：分析加法的两个参数，并利用一个辅助函数来计算二进制数的后继。\textit{提示}：或者你可以同时递归定义两个二进制数的和函数及其“和再加一”函数。
+\end{excs}
