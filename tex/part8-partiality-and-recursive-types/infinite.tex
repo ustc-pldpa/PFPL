@@ -1,0 +1,23 @@
+\section{有限和无限的数据结构}
+
+有限数据类型（finite data types）（和类型和积类型），包括它在模式匹配上的使用和泛型编程，一个不差地在\textbf{PCF}中存在。
+只是，\gls{eager evaluation}和\gls{lazy evaluation}在构造这些的动态语义上的区别就变得更加重要。
+问题不在编程的偏好上，而是选择\gls{eager evaluation}或\gls{lazy evaluation}的动态语义影响到程序的含义：“相同”的类型在\gls{eager evaluation}的动态语义和\gls{lazy evaluation}的动态语义下是不同的东西。
+例如，积类型在\gls{eager evaluation}语言中是组成类型所构成的一对值；但在\gls{lazy evaluation}语言中则是一对结果是组成类型的尚未求值且可能发散的计算，是一个很不同的概念。
+和类型的问题同理。
+
+这种情况对\gls{infinite data types}来说更加严峻，比如说“自然数”类型\(\mathtt{nat}\)。
+上面这个骇人的引号是有依据的，那就是“相同”的类型在\gls{eager evaluation}和\gls{lazy evaluation}下有着非常不同的意义。
+事实上，在前面的例子中，\(\mathtt{nat}\)类型是真正的自然数类型——最小的包括零以及对后继函数封闭。
+%　这里有第十五章的链接
+数学归纳法的原理在\gls{eager evaluation}动态语义的推理上是适用的，它对应定义在第十五章的\gls{inductive types}\(\mathtt{nat}\)。
+
+换句话说，在\gls{lazy evaluation}动态语义下类型\(\mathtt{nat}\)根本就不是自然数的类型。
+例如，它包含值
+\[
+	w \triangleq \mathtt{fix}\ x: \mathtt{nat}\ \mathtt{is}\ \mathtt{s}(x)
+\]
+它竟然是自己的前驱！
+直觉上，这是无限个后继的叠加，显然不是一个自然数（比每个自然数都大），所以数学归纳法的原理是不适用的。
+%　这里有第十五章的链接
+我们重命名\gls{lazy evaluation}环境下的\(\mathtt{nat}\)为\(\mathtt{lnat}\)来提醒我们这之中的区别，它对应第十五章定义的\(\mathtt{conat}\)类型。
