@@ -1,0 +1,61 @@
+\section{注意事项}
+子类型的定型可能是编程语言中被广泛误解的概念之最。
+子类型的定型原则上来说应该要提供一些方便，让一些程序更容易编写，就像是类型推断那样。
+但是包容原则是一把双刃剑。
+当$tau'$是$\tau$的子类型时，包容原则允许了$\tau'$到$\tau$的隐式转化。
+%implicit passage，不知道应该如何翻译，从上下文来看是某种转化或是过渡
+但是当$e$拥有类型$\tau$含有的一些类型时，包容原则削弱了类型断言$e:\tau$的含义。
+包容原则妨碍了一些条件的表达，那就是$e$\textit{正是}类型$\tau$，或者两个联结的表达式具有相同的类型。
+正是这个弱点造成了子类型的定型的很多麻烦。
+
+对于子类型的定型，有很多已有的文字资料，它们常常和面向对象编程相关。Stamdard ML(Milner et al.,1997)是最早的利用了
+子类型系统的语言之一，它的子类型有\texttt{enrichment}和\texttt{realization}两种形式。
+%这里的enrichment和realization没有找到现有的翻译。考虑到是专有名词，不敢随意翻译。
+前者对应的是积类型的子类型定型，后者对应与类型定义相关的“健忘的”子类型定型（参见章节43）。
+%章节43为别的章节的引用
+对于子类型的定型的最早的系统性的研究包括Mitchell(1984)，Reynolds(1980)，和Cardelli(1988)的作品。
+Pierce(2002)对子类型的定型给了一个深入的解释，尤其是递归类型和多态类型，并且证明了
+有限不可断言的全程量化的子类型的定型是不可判定的。
+%bounded impredicative universal quantification直接逐词翻译了
+\ctexset{paragraph/runin=false}
+\paragraph{习题}
+\begin{enumerate}
+    \item 对于类型变体
+    $$
+        (unit \rightharpoonup \tau)\times(\tau\rightharpoonup\texttt(unit))
+    $$
+    假如将它视为以$\tau$为参数的构造体，它是协变的还是逆变的？对于两者都要给出准确的证明或者是反例。
+    \item 考虑两个递归类型
+    $$
+        \rho_1\triangleq \texttt{rec}\;t\;\texttt{is}\langle\texttt{eq}\hookrightarrow(t\rightharpoonup\texttt{bool})\rangle
+    $$
+    和
+    $$
+        \rho_2\triangleq \texttt{rec}\;t\;\texttt{is}\langle\texttt{eq}\hookrightarrow(t\rightharpoonup\texttt{bool}),\texttt{f}\hookrightarrow\texttt{bool}\rangle
+    $$
+    很明显$\rho_1$不是$\rho_2$的子类型，因为假如将两者视为展开后的积类型，前者的值缺少后者的值所拥有的成分。
+    但是，$\rho_2$是否是$\rho_1$的子类型呢？
+    如果是，利用小节\ref{section:structural_subtyping_Variance}中的规则给出推导。
+    如果不是，给出一个反例说明该子类型的定型会违背类型安全。
+    \item 有另一种能够保证安全性，但是赋予了包容原则动态意义的实现子类型的定型的动态特性方法。
+    %这句话英文我都没读懂。approach to dynamics是什么意思？是实现动态特性的方法么？
+    这种方法采用了一种叫做\textit{强制}的证明方法，对于每个子类型关系，每当包容原则被应用时，插入一个强制子。
+    更准确地讲，
+    \begin{itemize}
+        \item[(a)]对任意一个有效的子类型关系$\tau<:\tau'$，一个强制函数$\chi:\tau\rightharpoonup\tau'$将一个类型为$\tau$的值转化为类型为$\tau'$的值。
+        \item[(b)]将包容规则翻译为隐式强制。具体而言，当$\tau<:\tau'$被$\chi:\tau\rightharpoonup\tau'$所证明时，
+        对$e:\tau$利用包容原则，并利用函数$\chi$来得到$\chi(e):\tau'$。
+    \end{itemize}
+    对于“宽”积类型的子类型的定型，以及积类型、和类型和函数类型的变体规则的子类型关系
+    准确地改写这个方法。
+    你的解答应该明确表述它避免了前文提到的默认投影假设。
+
+    然而，可能有多个强制函数$\chi:\tau\rightharpoonup\tau'$对应子类型关系$\tau<:\tau'$。
+    这意味着一个程序可能会在包容原则被运用时，依赖于哪个强制函数被选择来决定其行为。
+    如果对每个子类型关系，有且只有一个强制，这种情况叫做\textit{一致}。
+    你对积类型的子类型定型的带有强制的翻译是一致的吗？
+    （合适地对待一致性需要表达式的等效性，这在章节47中会讨论）
+    %此句为字面意思翻译，但是不通顺。
+    %47为别的章节的引用
+\end{enumerate}
+%练习题不知道该怎么编号了
