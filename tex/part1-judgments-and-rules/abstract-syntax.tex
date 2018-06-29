@@ -118,8 +118,8 @@ induction)}。假设我们希望证明对某个类型的任一 ast \(a\) ，都�
 \(\mathcal{X} = \{\mathcal{X}_s\}_{s \in \mathcal{S}}\) 为，由类型 \(s\)
 的\emph{变量} \(x\) 组成的不相交有限集合 \(\mathcal{X}_s\)
 组成的，由类型索引的族。当\(\mathcal{X}\)的上下文无关时，如果 一个变量
-\(x\in \mathcal{X_s}\)我们说这个变量 \(x\) 类型为 \(s\) ；而当
-\(x \notin \mathcal{X_s}\) 时，我们可以说 \(x\) 对于 \(\mathcal{X}\)
+\(x\in \mathcal{X}_s\)我们说这个变量 \(x\) 类型为 \(s\) ；而当
+\(x \notin \mathcal{X}_s\) 时，我们可以说 \(x\) 对于 \(\mathcal{X}\)
 来说是\emph{未见(fresh)}的，或者当 \(\mathcal{X}\) 已知的情况下，直接说
 \(x\) 是\emph{未见(fresh)}的。这种记号法当 \(s\)
 是由上下文决定，而不是显式声明的情况下是模糊的。
@@ -147,19 +147,19 @@ induction)}。假设我们希望证明对某个类型的任一 ast \(a\) ，都�
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
 \item
-  如果 \(x\in\mathcal{X}_s\)， 则 \(\mathcal{P_s(x)}\) 。
+  如果 \(x\in\mathcal{X}_s\)， 则 \(\mathcal{P}_s(x)\) 。
 \item
   如果运算符 \(o\) 有元数 \((s_1,\dots, s_n)s\) ，且
-  \(\mathcal{P_{s_1}(a_1)}\) ，\(\dots\) 和 \(\mathcal{P_{s_n}(a_n)}\)
-  ，则 \(\mathcal{P_s(o(a_1;\dots ;a_n))}\).
+  \(\mathcal{P}_{s_1}(a_1)\) ，\(\dots\) 和 \(\mathcal{P}_{s_n}(a_n)\)
+  ，则 \(\mathcal{P}_s(o(a_1;\dots ;a_n))\).
 \end{enumerate}
 
 例如，如果有\(X\subseteq Y\) ，很容易通过结构归纳法证明
 \(\mathcal{A[X]\subseteq A[Y]}\)
 
-变量通过代换获得含义，如果 \(a\in\mathcal{A[X,x]}_{s'}\)，且
-\(\mathcal{b\in A[X]_s}\)，则 用 \(b\) 去代换 \(a\) 中出现的所有 \(x\)
-得到的结果 \([b/x]a\in \mathcal{A[X]_{s'}}\) 。 ast a
+变量通过代换获得含义，如果 \(a\in\mathcal{A[X,}x]_{s'}\)，且
+\(b\in \mathcal{A[X]}_s\)，则 用 \(b\) 去代换 \(a\) 中出现的所有 \(x\)
+得到的结果 \([b/x]a\in \mathcal{A[X]}_{s'}\) 。 ast a
 被叫做代换的\emph{目标(target)} ，而 \(x\)
 被称为代换的\emph{对象(subject)}。代换由以下的等式所定义：
 
@@ -177,9 +177,11 @@ induction)}。假设我们希望证明对某个类型的任一 ast \(a\) ，都�
 
 我们可以通过结构归纳法证明一个代换是被正确定义的。
 
-\textbf{定理 1.1.} 如果 \(a\in \mathcal{A[X,x]}\) ，则对任意
+\begin{theorem}
+如果 \(a\in \mathcal{A[X},x]\) ，则对任意
 \(b \in \mathcal{A[X]}\) 都存在一个唯一的 \(c\in \mathcal{A[X]}\) 满足
 \([b/x]a=c\).
+\end{theorem}
 
 \emph{证明} 对 \(a\) 使用结构归纳法。 如果 \(a=x\) ，则根据定义有
 \(c=b\) ,否则如果\(a=y\neq x\)， 则同样根据定义有\(c=y\) 。否则，
@@ -276,8 +278,8 @@ abt
   如果 \(x\in \mathcal{X}_s\) ，则 \(x \in \mathcal{B[X]}_s\) 。
 \item
   对任意元数为 \((\vec{s_1}.s_1,\dots,\vec{s_n}.s_n)s\) 的运算符 \(o\)
-  ，如果 \(a_1\in \mathcal{B[X,\vec{x_1}]}_{s_1},\dots,\) 且
-  \(a_n\in \mathcal{B[X,\vec{x_n}]}_{s_n}\) ，则
+  ，如果 \(a_1\in \mathcal{B[X},\vec{x_1}]_{s_1},\dots,\) 且
+  \(a_n\in \mathcal{B[X},\vec{x_n}]_{s_n}\) ，则
   \(o(\vec{x_1}.a_1;\dots;\vec{x_n}.a_n)\in \mathcal{B[X]}_s\) .
 \end{enumerate}
 
@@ -303,7 +305,7 @@ renamings)}实现。具体而言，对一个有限的变量序列 \(\vec{x}\)
   对任意元数为 \((\vec{s_1}.s_1,\dots,\vec{s_n}.s_n)s\) 的运算符 \(o\)
   ，如果对每一个 \(1 \leq i \leq n\) 和每一个未见重命名
   \(\rho_i:\vec{x_i}\leftrightarrow \vec{x_i}'\) ，都有
-  \(\hat{\rho_i}(a_i)\in \mathcal{B[X,\vec{x_i}']}\) ，则
+  \(\hat{\rho_i}(a_i)\in \mathcal{B[X},\vec{x_i}']\) ，则
   \(o(\vec{x_1}.a_1,\dots,\vec{x_n}.a_n)\in \mathcal{B[X]}_s\)
 \end{itemize}
 
@@ -323,7 +325,7 @@ fresh renaming)} 。其指出，为了证明 \(\mathcal{P[X]}(a)\) 对任意
 \item
   对任意元数为 \((\vec{s_1}.s_1,\dots,\vec{s_n}.s_n)s\) 的运算符 \(o\)
   ，如果对每一个 \(1\leq i \leq n\) ，
-  \(\mathcal{P[X,\vec{x_i}']}_{s_i}(\hat{\rho_i}(a_i))\) 对所有
+  \(\mathcal{P[X},\vec{x_i}']_{s_i}(\hat{\rho_i}(a_i))\) 对所有
   \(\rho_i:\vec{x_i}\leftrightarrow \vec{x_i}'\) 都成立，其中
   \(\vec{x_i}' \notin X\) ，那么
   \(\mathcal{P[X]}_s(o(\vec{x_1}.a_1;\dots;\vec{x_n}.a_n))\) 成立。
@@ -333,7 +335,7 @@ fresh renaming)} 。其指出，为了证明 \(\mathcal{P[X]}(a)\) 对任意
 abt 中实际给出的命名下才成立。
 
 举一个例子，定义判断 \(x\in a\) 为 \(x\) 在 \(a\)
-中\emph{自由出现(occurs freely)} ，其中 \(a\in \mathcal{B[X,x]}\)
+中\emph{自由出现(occurs freely)} ，其中 \(a\in \mathcal{B[X},x]\)
 。非正式地说，它意味着 \(x\) 在 \(a\) 之外，而不是在 \(a\) 之内被绑定。
 如果 \(x\) 在 \(a\) 内被绑定，则这些出现的 \(x\) 和那些在绑定之外出现的
 \(x\) 不同。下列定义保证了这种情况。
@@ -413,9 +415,7 @@ $\alpha$-等价关系（\emph{$\alpha$-equivalence} ，如此命名有历史原�
 为恢复代换的函数性质，只需要采用如下的\emph{标识约定(identification
 convention)}即可：
 
-\begin{lemma}
   抽象绑定树总是根据$\alpha$-等价决定是否相同。
-\end{lemma}
 
 即，我们认为$\alpha$-等价的 abt 是相同的。代换可以扩展到 abt 的$\alpha$-等价类，并选择
 b 和 a
