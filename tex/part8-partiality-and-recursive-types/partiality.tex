@@ -1,0 +1,46 @@
+\section{完全性和部分性}
+
+类似于\textbf{T}的\gls{total programming}语言（total programming language）的好处是，通过类型检测，它能保证程序可以终止，并且每个函数都是\gls{total function}。
+一个\gls{well-typed}的程序不可能进入无限的循环中。
+这种限制看起来很好，直到有人开始考虑程序终止的时间上限很长，非常长，以至于对所有实际的目标也都发散。
+不过目前我们先认可避免发散是\textbf{T}的好处。
+那么，我们为什么要费尽心思地考虑像\textbf{PCF}这样一种不能避免发散的语言呢？
+毕竟，无限的循环是绝对的错误，为何不通过类型检查来排除它们呢？
+当有人试图用\textbf{T}语言写出下面的程序的时候，这种想法就不吸引人了。
+
+考虑计算两个自然数的最大公约数（gcd），它可以在\textbf{PCF}中通过求解下列用\gls{general recursion}编写的等式组：
+
+\begin{align*}
+	gcd(m, 0) &= m \\
+	gcd(0, n) &= n \\
+	gcd(m, n) &= gcd(m - n, n)\ \mathtt{if}\ m > n \\
+	gcd(m, n) &= gcd(m, n - m)\ \mathtt{if}\ m < n \\
+\end{align*}
+
+这样定义的\(gcd\)的类型是\((\mathtt{nat} \times \mathtt{nat}) \rightharpoonup \mathtt{nat}\)，意味着在有些输入上可能不会终止。
+但是，我们可以通过对两个参数之和来归纳得到这是一个\gls{total function}的证明。
+
+现在我们考虑在\textbf{T}中编写这个函数。实际上，只能用\gls{primitive recursion}来编写代码是一件痛苦的事情（试试吧！）。
+看待问题的一个角度是在\textbf{T}中唯一的循环方式是一次递归调用将一个自然数减一，所以不可能（直接）递归调用一个更小的数而只能是最近的前驱。
+事实上，你可能想着编写很多一般的模板来从原生的\gls{primitive recursion}来编写可结束的递归，但你会发现这样做增加了效率上的代价和编程的复杂度。
+编程上的难度可以通过搭建库来减轻，因为对可编程的标准模板，其开发的代价会平摊到所有的程序上，而并非作为单一程序的代价。
+但是效率仍然是一个问题。
+实际上，将更一般的递归通过\gls{primitive recursion}来编写，就意味着一定有一个“计时器”在一步一步地往下走，并最终保证程序能够终止。
+这样的结果就是用这些库写出的程序会比必要来的慢很多。
+
+有人可能会说，\textbf{T}并不是个真实的语言。一个更真实的\gls{total programming}语言会允许复杂的模式来控制并且不产生效率上的惩罚。
+诚然，我们能很容易的想象将自然数表示成二级制而不是目前的一进制，这样就能允许递归调用时减小一半来获得对数级的复杂度。
+这样的构建是可行的，并且还有很多类似的想法来避免\textbf{T}中这种笨拙的编程。
+那我们现在还能不能有一种实际上可行的语言来避免发散呢？
+
+可以是可以，但是有代价。
+我们已经看到\gls{total programming}语言的一个局限性：不通用。
+你不能在\textbf{T}语言中写一个\textbf{T}语言的解释器，并且不论任何的\gls{total programming}语言，都具有这个限制。
+如果这一点看起来不重要，那么考虑另外一个\gls{total programming}上的限制，那就是Blum尺度定理（Blum Size Theory, BST）。
+选定任何一个\gls{total programming}可以编写自然数函数的语言\(\mathcal{L}\)。
+再选择任何一个放大系数，例如\(2^{2^n}\)。
+Blum尺度定理告诉我们，存在一个自然数上的在\(\mathcal{L}\)中可编程的\gls{total function}，在\(\mathcal{L}\)中最短的程序要比\textbf{PCF}中最短的程序要长放大系数的倍数！
+
+这个证明的根本想法在于\textbf{\gls{total programming}语言中关于程序终止的证明必须嵌入在代码中}，而\textbf{在\gls{partial programming}语言中程序终止的证明是作为外部的验证条件而留给程序员的}。
+程序终止的证明表示起来一直都是很复杂的，哪怕你改变完全证明的前提（在\textbf{T}中是\gls{primitive recursion}，但也可以更有野心，但仍然无法逃出Blum尺度定理）。
+但如果你将这部分留给程序员的聪明才智，那么程序就会变短，因为这就不需要在程序运行时的代码中内嵌程序终止的证明了。
