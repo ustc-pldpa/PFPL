@@ -1,0 +1,81 @@
+我们讨论了\gls{total computations}（total computations）所根据的\textbf{T}语言，其类型系统是保证计算终止的。
+\textbf{M}语言则推广了\textbf{T}语言，以支持\gls{inductive types}（inductive types）和\gls{coinductive types}（coinductive types）。
+这一章中我们会介绍\textbf{PCF}系统来讨论\gls{partial computations}（partial computations）,即便它是\gls{well-typed}（良类型的），在求值时仍有可能不会终止。
+% 下一句引用第20章（下一章），原pdf上有链接
+这在一开始看来像是一个缺点，但我们会在第二十章中看到它所允许的比\textbf{T}语言更大的表达能力。
+
+\textbf{PCF}的部分性来源于\gls{general recursion}概念，它允许在一些表达式之中求解等式组。承认所有这些等式组有解的代价是可能存在不终止的计算，因为会有一部分求解所需的等式还没有定义（发散）。
+在\textbf{PCF}中，编程者必须确保计算能够终止，而类型系统不保证这点。这么做的好处是终止的证明不必嵌入到代码中，从而使得代码更短。
+
+举例来说，考虑下面的等式组：
+\begin{align*}
+	f(0) &\triangleq 1 \\
+	f(n + 1) &\triangleq (n + 1) \times f(n)
+\end{align*}
+
+凭直觉就能看出这些等式定义了阶乘函数。这些等式联立起来构成了对自然数域上的未知函数\(f\)的方程，我们所要找的解就是就是特定的函数\(f: \mathbb{N} \rightarrow \mathbb{N}\)满足上面的条件。
+
+这样一个联立等式系统的解就是就是在一个联合函数（高阶函数）上的\gls{fixed point}（fixed point）。为了能够更好的理解，我们以另一种形式重写这些等式：
+
+\begin{align*}
+	f(n) \triangleq 
+	\left\{
+	\begin{array}{ll}
+		1 & \mathrm{if\ } n = 0 \\
+		n \times f(n') & \mathrm{if\ } n = n' + 1
+	\end{array}
+	\right.
+\end{align*}
+
+再重写一遍，我们要找的\(f\)要使得
+
+\begin{align*}
+	n \mapsto 
+	\left\{
+	\begin{array}{ll}
+		1 & \mathrm{if\ } n = 0 \\
+		n \times f(n') & \mathrm{if\ } n = n' + 1
+	\end{array}
+	\right.
+\end{align*}
+
+% 这里文中的functional和数学上的functional（传统意义上的\gls{functional}）之含义是不同的，请留意是否应该使用这种翻译方式
+现在，我们要定义\gls{functional}\(F\)，使得\(F(f)=f'\)，其中\(f'\)要满足
+
+\begin{align*}
+	n \mapsto 
+	\left\{
+	\begin{array}{ll}
+		1 & \mathrm{if\ } n = 0 \\
+		n \times f(n') & \mathrm{if\ } n = n' + 1
+	\end{array}
+	\right.
+\end{align*}
+
+需要注意这里\(f'\)的条件是用\gls{functional}\(F\)的参数\(f\)表示的，而不是使用\(f'\)自己表示的。
+我们要找的函数\(f\)就是\(F\)的\gls{fixed point}，它是一个函数\(f: \mathbb{N} \rightarrow \mathbb{N}\)满足\(f = F(f)\)。
+换句话说，\(e\)被定义为\(fix(F)\)，其中\(fix\)是高阶运算，作用在\gls{functional}\(F\)上并计算其\gls{fixed point}。
+
+为什么这样的一个操作\(F\)具有\gls{fixed point}？
+重点在于\textbf{PCF}中的函数是部分性的，这就意味着它们可能对一些（甚至全部）输入发散。
+因此，\gls{functional}\(F\)的\gls{fixed point}是对于迭代\(F\)期待得到的一系列近似结果上的限制。
+我们说一个自然数上的\gls{partial function}\(\phi\)是一个\gls{total function}\(f\)的近似，当如果\(\phi(m) = n\)的时候总有\(f(m)=n\)。
+% 请注意这里用harpoonup而不是arrow，表示partial function
+定义\(\perp: \mathbb{N} \rightharpoonup \mathbb{N}\)是完全没有定义的\gls{partial function}，即对\(\forall n \in \mathbb{N}\)，\(\perp(n)\)都是没有定义的。
+这是我们所期待的上述递归式中\(f\)的解中“最差”的近似。
+给定任何一个\(f\)的近似\(\phi\)，我们可以用\(\phi' = F(\phi)\)进行“改进”。
+于是，\gls{partial function}\(\phi'\)首先能够定义在0上，然后\(\phi\)有定义的\(\forall m > 0\)上，\(\phi'\)就能定义在相应的\(m + 1\)上。
+继续这个过程，\(\phi'' = F(\phi') = F(F(\phi))\)是对\(\phi'\)的改进，以此类推可以得到更多的改进。
+如果我们从\(\perp\)开始作为最初的\(f\)的近似，不断计算直到达到极限
+
+\[
+	\lim_{i \geq 0} F^{(i)}(\perp)
+\]
+
+我们至少能得到定义在每个\(m \in \mathbb{N}\)上的\(f\)的近似，因此得到的就是\(f\)自己。
+反过来说，如果这个极限存在，那这就是我们想要的结果。
+
+因为这样的构造对任何\gls{functional}\(F\)都可行，所以我们可以总结出所有这样的操作都具有不动点，从而所有的等式组系统就像上面的例子一样具有解。
+这个解是由\gls{general recursion}给出的，但并不保证是一个\gls{total function}（定义在当前域中的每个元素上）。
+上面的例子只是恰巧是\gls{total function}，因为我们可以通过归纳来证明，但是通常情况下解会是一个\gls{partial function}并在一些输入上发散。
+这是编程者的任务来保证通过\gls{general recursion}定义的函数是\gls{total function}，或者至少能够控制其输入在已定义的范围内。

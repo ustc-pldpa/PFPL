@@ -1,0 +1,32 @@
+\section*{练习}
+
+\begin{enumerate}[label=\textbf{19.\arabic*.}]
+	% 这里有第10.3节的链接
+	\item 考虑第10.3节的问题：如何定义互递归的“奇”和“偶”函数。
+	那时我们给出了用\gls{primitive recursion}表示的解法。
+	你现在则需要给出一个用\gls{general recursion}表示的答案。\textit{提示}：考虑一对互递归函数是一个递归的函数对。
+	\item 
+	证明在定理19.3之前所描述的最小化函数是可以在\textbf{PCF}中定义的。
+	\item
+	考虑\gls{partial function}\(\phi_{halts}\)满足如果\(e: \mathtt{nat} \rightharpoonup \mathtt{nat}\)，那么\(\phi_{halts}(\ulcorner e \urcorner)\)求值的结果是0当且仅当\(e(\ulcorner e \urcorner)\)收敛，否则结果就是1。
+	证明\(\phi_{halts}\)是不能在\textbf{PCF}上定义的。
+	\item 
+	如果我们改变在定理19.3之前的最小化的定义，让\(\psi(n)\)成为最小的\(m\)使得\(\phi(m, n) = 0\)，然后如果没有这样的\(m\)则没有定义。
+	那么这个“简化”的最小化函数是否能在\textbf{PCF}中定义？
+	\item
+	假设我们想要定义\gls{lazy evaluation}型\textbf{PCF}的平行或函数：两个参数中有一个是\(\mathtt{z}\)就返回\(\mathtt{z}\)，否则返回\(\mathtt{s}(\mathtt{z})\)。
+	即我们想要找到表达式\(e\)满足以下的条件：
+	\begin{align*}
+		e(e_1)(e_2) & \longmapsto * \mathtt{z}\ \mathtt{if}\ e_1 \longmapsto * \mathtt{z}
+		e(e_1)(e_2) & \longmapsto * \mathtt{z}\ \mathtt{if}\ e_2 \longmapsto * \mathtt{z}
+		e(e_1)(e_2) & \longmapsto * \mathtt{s}(\mathtt{z})\ \mathtt{otherwise}
+	\end{align*}
+	因此，\(e\)的对两个参数的定义是一个\gls{total function}，即便可能对其中一个参数发散。
+	很明显这样的一个函数是不能被\gls{call-by-value}型\textbf{PCF}定义的，那能不能在\gls{call-by-name}型\textbf{PCF}中定义呢？
+	如果可以，请展示；如果不能，则证明为什么不能，并提供一个\textbf{PCF}的可以支持该函数定义的拓展
+	\item
+	我们借助Church定律来说明\gls{universal function}在\textbf{PCF}中是可定义的。
+	考虑两个方面的问题来揭示其内涵：（1）哥德尔编码，将抽象的语法表示成数字；（2）求值，一个将输入带入函数演算的过程。
+	第（1）部分是一个从\textbf{PCF}上有限的可行数据结构上产生的技术性问题。
+	第（2）部分是问题的核心，请用第（1）部分的结果来表示它的实现。
+\end{enumerate}
