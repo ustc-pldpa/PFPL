@@ -1,0 +1,83 @@
+\section{动态特性和安全}
+在小节\ref{section:structural_subtyping_Varieties_of_Subtyping}中，积类型的子类型的定型中有一个容易被忽略的假设前提，
+%subtle 翻译成假设前提
+那就是假如$J\supseteq I$，如果一个投影操作可以应用于$I$元组上，那么\textit{相同}的投影操作可以应用到$J$元组上。
+但是这条事实并非恒成立。
+人们可以按照自己的意愿将$I$元组用不同于$J$元组的方式表达，
+于是位置$i\in I \subseteq J$的投影的含义在两种情况下是不同的。
+没有任何规则排除了这种可能性，尽管积类型的子类型的定型依赖于上述情况并不发生。
+从这个角度来看，积类型的子类型的定型并非完全合理，
+但反过来也许有人会觉得子类型的定型其实限制了一些可能的实现来保证其实现是有意义的。
+
+对和类型也可以进行类似的思考。一个$J$路的情况分析不一定可以应用于$I$路的和类型的值，即便是在$I\subseteq J$并且对应的情况有着相同的类型。
+%in common agree不知道是什么用法，直接按我猜想的意思翻译了 
+举个例子，某人可能想要以一种无法应用到“大”索引集合的方式表示一个“小”索引集合的和类型的值。
+在这种情况下，大索引集合的情况分析可能在小索引集合的和类型的值中没有意义。
+于是我们再次得出结论，和类型的子类型的定型也并不合理，
+或者说它对和类型的实现施加了一些原本不应该被强制的限制。
+
+这些思考说明具有子类型的定型的编程语言的安全性需要纳入更多细致的考量。
+作为一个启发性的例子，我们考虑添加了积类型的子类型的定型的\textbf{FPC}的安全性。
+主要关注点是包容原则模糊了一个值真正的类型，将正规形式的引理弄复杂了。
+%这句话我自己也没太看明白。
+除此之外，我们假设了在更宽的元组中，相同的投影会如同更窄的元组中那样有意义，只要还在其范围内。
+\begin{lemma}[结构性]
+    ~
+    \begin{enumerate}
+    \item 元组的子类型关系是自反且传递的
+    \item 子类型断言$\Gamma\vdash e:\tau$在削弱和替代封闭性
+    \end{enumerate}
+\end{lemma}
+\begin{proof}
+    ~
+    \begin{enumerate}
+        \item 自反性由类型的结构得出。通过断言$\tau''<:\tau'$和$\tau'<:\tau$
+        可以推导出$\tau''<:\tau$，于是传递性得证。
+        \item 由规则（10.3）和规则(\ref{equation:subsumption_rule})得出。
+    \end{enumerate}
+\end{proof}
+%10.3是别的章节的引用
+\begin{lemma}[反转性]\label{lemma:inversion}
+    ~
+    \begin{enumerate}
+        \item 如果$e.j:\tau$，那么$e:\prod_{i\in I}\tau_i$，$j\in I$，并且$\tau_j<:\tau$。
+        \item 如果$\langle e_i\rangle_{i\in I}:\tau$，那么$\prod_{i\in I}\tau_i'<:\tau$，其中对一切$i\in I$有$e_i:\tau_i'$。
+        \item 如果$\tau'<:\prod_{j\in J}\tau_j$，那么对于某些I和某些类型$\tau_i'$满足$i\in I$，有$\tau'=\prod_{i\in I}\tau_i'$。
+        \item 如果$\prod_{i\in I}\tau_i'<:\prod_{j\in J}\tau_j$，则对于任何$j\subseteq J$，有$J\in I$和$\tau_j'<:\tau_j$。
+    \end{enumerate}
+\end{lemma}
+\begin{proof}
+    由子类型的定型规则和一般定型规则得出。尤其要注意规则(\ref{equation:subsumption_rule})。
+\end{proof}
+
+\begin{theorem}[保型]
+    如果$e:\tau$并且$e\longmapsto e'$，那么$e':\tau$。
+\end{theorem}
+\begin{proof}
+    由规则(10.4)得出。
+    %10.4是别的章节的引用
+    比如说，考虑规则(10.4d)，可以得到$e=\langle e_i \rangle_{i\in I}\cdot k$和$e'=e_k$。由引理\ref{lemma:inversion}
+    我们可以得出$\langle e_i \rangle_{i\in I}:\prod_{j\in J}\tau_j$，对于$k\in J$和$\tau_k<:\tau$。 
+    另一个引理\ref{lemma:inversion}的应用是，对于一切$i\in I$，存在$\tau_i'$，使得
+    $e_i:\tau_i'$并且$\prod_{i\in I}\tau_i'<:\prod_{j \in J}\tau_j$。 
+    再次由引理\ref{lemma:inversion}可得对于任意$j\in J$有$J\subseteq I$和$\tau_j'<:\tau_j$。
+    到这里就有$e_k:\tau_k$，正如我们想要的那样。其他的情况是类似的。
+\end{proof}
+\begin{lemma}[正规形式]\label{lemma:canonical_forms}
+    如果$e\;val$并且$e:\prod_{j\in J}$，那么$e$具有形式$\langle e_i\rangle_{i\in I}$，其中$J\subseteq I$且对于一切$j\in J$有$e_j:\tau_j$。
+\end{lemma}
+\begin{proof}
+    由（10.3）和规则(\ref{equation:subsumption_rule})得出。
+    %10.3是别的章节的引用。
+\end{proof}
+\begin{theorem}[推广]
+%从词义上来看Progress似乎是推广的意思，但这个定理只是把前定理和引理结合起来，
+%没有扩展到一个更普遍的情况，所以这个词应该不合适。
+    如果$e:\tau$，则要么$e\;val$，要么存在$e'$使得$e\longmapsto e'$。
+\end{theorem}
+\begin{proof}
+    由（10.3）和规则(\ref{equation_subsumption_rule})得出。
+    %10.3是别的章节的引用。
+    包容原则在满足其前提性的归纳性假设的条件下使用。在规则(10.4d)的基础上运用引理(\ref{lemma:canonical_forms})。
+\end{proof}
+

@@ -1,0 +1,28 @@
+\section{包容}
+一个\textit{子类型断言}有着如下形式：
+$\tau{'} <: \tau$
+它表明$\tau{'}$是$\tau$的子类型。对于一个可采纳的子类型定型，我们至少要求如下的\textit{结构规则}成立：
+%这里的admissable一词，我在纠结翻译为“可接纳”、“可采纳”、“可接受”，何者能够表达逻辑上的“隐式成立”
+%这个词原本的定义是指，某个推理规则被加入形式系统后，定理集合没有发生变化
+%所有合取公式即便没有这条推理规则也已经被推导出。换言之，它是多余的
+%或者干脆翻译成“成立”？
+\begin{subequations}
+    \begin{gather}
+        \frac{}{\tau<:\tau} \\
+        \frac{\tau{''}<:\tau{'}\;\;\;\tau{'}<:\tau}{\tau{''}<:\tau}
+    \end{gather}
+\end{subequations}
+事实上，我们要么不加声明地把这些规则当做原始规则，要么证明它们对于某个特定的子类型规则是可采纳的。
+
+建立子类型关系的关键作用在于扩大类型良好的程序集合，而这一点由\textit{包容规则}完成：
+\begin{equation}\label{equation:subsumption_rule}
+    \frac{\Gamma\vdash\mathnormal{e}:\tau{'}\;\;\;\tau'<:\tau}{\Gamma\vdash e:\tau}
+\end{equation}
+
+与大多数定型规则相反，包容规则并\textit{不}是面向语法的，因为它并不限制$e$的形式。
+换言之，包容规则可以被用诸\textit{任何}形式的表达式。
+尤其是，为了论证$e:\tau$，我们有两个选择：
+要么应用适合于$e$的特定形式的逻辑规则，
+要么运用包孕规则检查$e:\tau{'}$和$\tau{'}<:\tau$是否都成立。
+
+
