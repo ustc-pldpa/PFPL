@@ -1,5 +1,6 @@
 \documentclass{ctexbook}
 \input{setting}
+\usepackage{xcolor}
 
 \title{{\Huge\textbf{编程语言实用基础}} \\第二版}
 \author{Robert Harper}
@@ -10,26 +11,28 @@
 \frontmatter
 \maketitle
 
-\subimport{tex/}{preface2}
-\subimport{tex/}{preface1}
+% \subimport{tex/}{preface2}
+% \subimport{tex/}{preface1}
 \subimport{tex/}{note}
+
+\setcounter{tocdepth}{1}
 \tableofcontents
 
 \newpage
 \mainmatter
 
 \subimport{tex/part1-judgments-and-rules/}{part}
-% \subimport{tex/part2-statics-and-dynamics/}{part}
+\subimport{tex/part2-statics-and-dynamics/}{part}
 % \subimport{tex/part3-total-functions/}{part}
 % \subimport{tex/part4-finite-data-types/}{part}
-% \subimport{tex/part5-types-and-propositions/}{part}
-% \subimport{tex/part6-infinite-data-types/}{part}
-% \subimport{tex/part7-variable-types/}{part}
-% \subimport{tex/part8-partiality-and-recursive-types/}{part}
+\subimport{tex/part5-types-and-propositions/}{part}
+\subimport{tex/part6-infinite-data-types/}{part}
+\subimport{tex/part7-variable-types/}{part}
+\subimport{tex/part8-partiality-and-recursive-types/}{part}
 % \subimport{tex/part9-dynamic-types/}{part}
-% \subimport{tex/part10-subtyping/}{part}
+\subimport{tex/part10-subtyping/}{part}
 % \subimport{tex/part11-dynamic-dispatch/}{part}
-% \subimport{tex/part12-control-flow/}{part}
+\subimport{tex/part12-control-flow/}{part}
 % \subimport{tex/part13-symbolic-data/}{part}
 % \subimport{tex/part14-mutable-state/}{part}
 % \subimport{tex/part15-parallelism/}{part}
@@ -39,8 +42,8 @@
 % \subimport{tex/part19-appendices/}{part}
 
 \backmatter
+\part{附录}
 \appendix
-\appendixpage
 \printglossary[title=术语]
 
 \end{document}

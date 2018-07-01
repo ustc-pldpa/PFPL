@@ -1,2 +1,229 @@
-\part{}
 
+\part{变量类型}
+\chapter{第16章：F系统的}
+
+在我们之前讨论的语言中，每一个表达式在给定自由变量的类型后，该表达式都有一个唯一的类型，因此我们称这个语言为单态语言。
+但是很多时候变量的类型虽然不同，它们都需要实现相同的功能。举一个例子，在\textbf{T}系统中，对于每一个类型$\tau$，我们需要
+为它实现独自的函数$\lambda (x:\tau) x$，即使不同的$\tau$会有相同的表现。类似的，对于每一个三元组类型，存在一个独立的复合符号，具体即
+$$o_{\tau 1, \tau 2, \tau 3} = \lambda (f:\tau 2 \to \tau 3) \lambda (g: \tau1 \to \tau2) \lambda (x:\tau1) f(g(x)).$$
+三个类型的一次选择即需要一个不同的程序，即使它们执行的时候表现相同。
+
+显然，如果我们能完全地刻画这种模式，并且每当我们需要这种模式时实例化它，这将是很有用的。表达模式对通过模式实例化从而共享通用表现的方式代码化。这种通用表达就是多态。
+在这一章中我们将学习\textbf{F}语言，\textbf{F}语言是Firard在\textit{System F}和Reynolds在\textit{polymorphic typed $\lambda-calculus$}中介绍的。
+尽管多态诞生的动机出于一个小问题（如何防止写冗余的代码），多态在非常多看上去不同的概念中都扮演了核心角色，例如数据抽象（在第17章），之前章节中提到的积，和，归纳，协同归纳类型的定义。（只有通用递归类型延伸了语言的表达能力）
+
+\subsection{多态抽象}
+\textbf{F}语言是\textbf{T}语言在删除自然数类型，为了补偿而加上多态类型后的变种：
+\begin{align*}
+  Typ &\tau ::= &t \qquad                  &t                &variable \\
+      &         &arr(\tau 1;\tau 2)  &\tau1 \to \tau2  &function \\
+      &         &all(t.\tau)         &\forall(t.\tau)  &polymorphic \\
+  Exp &e ::=    &x  \qquad                 &x                &\\
+      &         &lam{\tau}(x.e)      &\lambda(x:\tau)e &abstraction   \\
+      &         &ap(e_1; e_2)        &e_1(e_2)         &application\\
+      &         &Lam(t.e)            &\Lambda(t)e      &type\ abstraction\\
+      &         &App{\tau}           &e[\tau]          &type\ application
+\end{align*}
+一个\textit{类型抽象}Lam(t.e)定义了一种通用，或者说多态的函数，其包含了表明表达式\textit{e}中尚未确定类型的类型变量\textit{t}。一个\textit{类型应用}，或者说$App{\tau}(e)$的\textit{实例化}，将一个多态函数应用到一个具体的类型。
+...一个\textit{通用类型}，$all(t.\tau)$，将多态函数分类。
+
+\textbf{F}的静态包含了两条断言形式，即type formation断言：
+$$\Delta \vdash \tau type,$$
+和typing断言：
+$$\Delta \vdash e:\tau$$
+假设$\Delta$拥有形式$t$类型，$t$是Typ中的一个变量。同时，假设$\Gamma$拥有形式$x:\tau$，$x$是Exp中的变量。
+
+定义了生成类型的断言的规则如下：
+\begin{gather}
+  \overline{\Delta, t \ type \vdash t \ type} \\
+  \frac{\Delta \vdash \tau_{1} type \quad \Delta \vdash \tau_{2} type}{\Delta \vdash arr(\tau 1; \tau 2)\ type} \\
+  \frac{\Delta, t\ type \vdash \tau \ type}{\Delta \vdash all(t.\tau) type}
+\end{gather}
+
+定义了定型断言的规则如下：
+\begin{gather}
+  \overline{\Delta, x:\tau \vdash x:\tau} \\
+  \frac{\Delta \vdash \tau_1 \ type \quad \Delta \Gamma, x : \tau_1 \vdash e : \tau_2}{\Delta \Gamma \vdash lam{\tau1}(x.e): arr(\tau_1;\tau2)} \\
+  \frac{\Delta \Gamma \vdash : arr(\tau_2;\tau) \quad \Delta \Gamma \vdash e_2: \tau_2}{\Delta \Gamma \vdash ap(e_1;e_2):\tau} \\
+  \frac{\Delta, t \ type \Gamma \vdash e:\tau}{\Delta \Gamma \vdash Lam(t.e):all(t.\tau)} \\
+  \frac{\Delta \Gamma \vdash e:all(t.\tau') \quad \Delta \vdash \tau \ type}{\Delta \Gamma \vdash App {\tau}(e):[\tau/t]\tau'}
+\end{gather}
+
+\begin{lemma}[规律性]
+  如果$\Delta \Gamma \vdash e:\tau$ , 并且如果对于$\Gamma$中每一条假设$x_i:\tau_i$都有$\Delta \vdash \tau_i$，那么$\Delta \vdash \tau type$
+\end{lemma}
+\begin{proof}
+  通过规则(16.2)归纳即可
+\end{proof}
+
+静态规定了一个通用的，含假设集的断言的结构规则。更具体的，我们对于类型生成和表达式断言有如下关键的替换：
+\begin{lemma}[替换]
+  \begin{itemize}
+    \item 如果$\Delta, t\ type \vdash \tau' 并且 \Delta \vdash \tau \ type，那么\Delta \vdash [\tau /t]\tau' \ type.$
+    \item 如果$\Delta, t\ type \Gamma \vdash e' 并且 \Delta \vdash \tau \ type，那么\Delta [\tau /t]\Gamma \vdash [\tau /t]e':[\tau /t]\tau'.$
+    \item 如果$\Delta \Gamma ,x:\tau \vdash e':\tau' 并且\Delta \Gamma \vdash [e/x]e':\tau'.$
+  \end{itemize}
+\end{lemma}
+
+引理的第二部分要求对环境$\Gamma$，包括里面项和类型进行替换，因为类型变量$t$可能出现在其中任意一个地方。
+
+回到我们开始介绍的那个例子，多态等价函数，$I$，可以记为：
+$$\Lambda (t) \lambda (x:t) x$$
+它的多态类型是：
+$$\forall (t.t \to t).$$
+多态等价函数的实例化记为$I[\tau]$，其类型是$t \to t$，这里$\tau$是某个类型。
+
+类似的，多态复合函数，$C$，可以写为：
+$$\Lambda (t_1) \Lambda (t_2) \Lambda (t_3) \lambda (f:t_2 \to t_3) \lambda (g:t_1 \to t_2) \lambda (x:t_1) f(g(x)).$$
+函数$C$的多态类型是：
+$$\forall (t_1.\forall (t_2.\forall(t_3. (t_2 \to t_3) \to (t_1 \to t_2) \to (t_1 \to t_3)))).$$
+
+将$C$应用到一个三元组类型上完成实例化，记为$C[\tau_1][\tau_2][\tau_3]$。每一个实例化的结果有类型：
+$$(\tau_2 \to \tau_3) \to (\tau_1 \to \tau_2) \to (\tau_1 \to \tau_3)$$
+
+\subsubsection{动态}
+\textbf{F}的动态定义如下：
+\begin{gather}
+  \overline{lam{\tau}(x.e)val}\\
+  \overline{Lam(t.e)val}\\
+  \frac{[e_2 \ val]}{ap(lam{\tau_1}(x.e);e_2) \longmapsto [e_2/x]e}\\
+  \frac{e_1 \longmapsto \ e_1'}{ap(e_1;e_2) \longmapsto ap(e_1';e_2)}\\
+  \lbrack \frac{e_1 \ val \quad e_2 \longmapsto e_2'}{ap(e_1;e_2) \longmapsto ap(e_1;e_2')} \rbrack \\
+  \overline{App{\tau}(Lam(t.e))\longmapsto [\tau / t]e} \\
+  \frac{e \longmapsto e'}{App{\tau}(e) \longmapsto App{\tau}(e')}
+\end{gather}
+
+被中括号括起来的前提和规则是为了按值调用的解释而引入的，并且省略了\textbf{F}按名调用的解释。
+
+证明\textbf{F}的安全性则更为简单，使用熟悉的方法：
+
+\begin{lemma}[规范形式]
+  假设$e:\tau$和$e \ val$，有
+  \begin{itemize}
+    \item 如果$\tau=arr(\tau_1;\tau_2)$，那么$e=lam{\tau_1}(x.e_2)$，并且有$\ x:\tau_1 \vdash e_2 $。
+    \item 如果$\tau=all(t.\tau')$，那么$e=lam{\tau_1}(x.e_2)$，并且有$t \ type \vdash e':\tau'$。
+  \end{itemize}
+\end{lemma}
+
+\begin{proof}
+  通过静态规则的归纳。
+\end{proof}
+
+\begin{theorem}[保留性]
+  如果$e:\tau$并且$e \longmapsto e'$，那么$e':\tau$。
+\end{theorem}
+
+\begin{proof}
+  通过动态规则的归纳。
+\end{proof}
+
+\begin{theorem}[可归纳性]
+  如果$e:\tau$，那么要么$e \ val$，要么存在$e'$，且有$e \longmapsto e'$。
+\end{theorem}
+
+\subsection{多态的可定义性}
+\textbf{F}语言表达力非常之强。不仅可以定义任意（惰性）有限的积类型与和类型，也可定义任意（惰性）归纳类型与协同归纳类型。
+使用定义平等来表示可定义性是最自然的，这是包含以下两个公理的最不一致的定义：
+\begin{gather}
+  \frac{\Delta \Gamma, x:\tau_1 \vdash e_2:\tau_2 \quad \Delta \Gamma \vdash e_1:\tau_1}{\Delta \Gamma \vdash (\lambda (x:\tau)e_2)(e_1) \equiv [e_1/x]e_2: \tau_2}
+  \frac{\Delta, t \ type \Gamma \vdash e:\tau \quad \Delta \vdash \rho type}{\Delta \Gamma \vdash \Lambda (t) e[\rho] \equiv [\rho/t]e:[\rho/t]\tau}
+\end{gather}
+除此之外，这里省略了一些表明定义平等是一致关系的规则（也就是说，一个所有表达生成都一致的平等关系）。
+
+\subsubsection{积与和}
+一个无元素的积，或者说单元（unit），它的类型在\textbf{F}中定义如下：
+$$unit \triangleq \forall (r.r \to r)$$
+$$\langle \rangle \triangleq \Lambda (r) \lambda (x:r) x$$
+等价函数扮演了单元的角色，因为这是\textcolor{red}{它是这种类型唯一的闭值}
+
+二元积通过使用在21章中为未定型的$\lambda-演算$类似的编码技巧在\textbf{F}中定义如下：
+$$\tau_1 \times \tau_2 \triangleq \forall (r.(\tau_1 \to \tau_2 \to r)\to r)$$
+$$\langle e_1, e_2 \rangle \triangleq \Lambda (r) \lambda (x:\tau_1 \to \tau_2 \to r)x(e_1)(e_2)$$
+$$e \cdot l \triangleq e[\tau_1](\lambda (x:\tau_1)\lambda (y:\tau_2)x)$$
+$$e \cdot r \triangleq e[\tau_2](\lambda (x:\tau_1)\lambda (y:\tau_2)y)$$
+
+通过这些定义，可以推导出第十章给出的静态规则。除此之外，通过\textbf{F}中的定义可以推导出以下定义等式：
+$$\langle e_1, e_2\rangle \cdot l \equiv e_1:\tau_1$$
+$$\langle e_1, e_2\rangle \cdot r \equiv e_2:\tau_2$$
+
+一个无元素的和，或者说空（void），它的类型在\textbf{F}中定义如下：
+$$void \triangleq \forall (r.r)$$
+$$abort{\rho}(e) \triangleq e[\rho]$$
+
+二元和在\textbf{F}中定义如下：
+$$\tau_1 + \tau_2 \triangleq \forall (r.(\tau_1 \to r) \to (\tau_2 \to r)\to r)$$
+$$l \cdot e \triangleq \Lambda (r) \lambda (x:\tau_1 \to r) \lambda (y:\tau_2 \to r) x(e)$$
+$$r \cdot e \triangleq \Lambda (r) \lambda (x:\tau_1 \to r) \lambda (y:\tau_2 \to r) y(e)$$
+$$case e {l \cdot x_1 \hookrightarrow e_1 | r \cdot x_2 \hookrightarrow e_2} \equiv$$
+$$e[\rho](\lambda (x_1:\tau_1)e_1)(\lambda(x_2:\tau_2)e_2)$$
+表明了这些类型的意义。容易验证以下等价定义在\textbf{F}中是可推导的：
+$$case \ l \cdot d_1{l \cdot x_1 \hookrightarrow e_1 | r \cdot x_2 \hookrightarrow e_2} \equiv [d_1/x_1]e_1:\rho$$
+$$case \ r \cdot d_2{l \cdot x_1 \hookrightarrow e_1 | r \cdot x_2 \hookrightarrow e_2} \equiv [d_2/x_2]e_2:\rho$$
+
+所以第11章中的动态行为可以通过这里的定义正确表示。
+
+\subsubsection{自然数}
+在上面我们提到，自然数（在惰性解释下）在\textbf{F}中也是可定义的。其中的关键在于迭代器，回顾之前它的定型规则如下：
+$$\frac{e_0:nat \quad e_1:\tau \quad x:\tau \vdash e_2:\tau}{iter{e_1;x.e_2}(e_0):\tau}$$
+因为返回类型$\tau$是任意的，这意味着如果我们有一个迭代器，我们可以使用它定义一个函数，其类型为：
+$$nat \to \forall (t.t \to (t \to t) \to t).$$
+
+这个函数，当应用到参数$n$上时，会产生一个多态函数。对于任何的返回类型，$t$，给定$z$的初始结果和一个$x$的结果到$s(x)$的结果的转换，得到从初始结果开始迭代n次转换的结果。
+
+因为我们能对自然数做的唯一运算就是将其迭代，我们可以简单地识别一个自然数，$n$，通过刚才描述的迭代n次的多态函数。所以我们可以通过以下等式定义\textbf{F}中自然数的类型：
+\begin{align*}
+  nat &\triangleq \forall (t.t\to (t\to t) \to t) \\
+  z   &\triangleq \Lambda(t) \lambda (z:t) \lambda (s:t \to t) z\\
+  s(e)&\triangleq \Lambda(t) \lambda (z:t) \lambda (s:t \to t) s(e[t](z)(s))\\
+\end{align*}
+容易验证第九章给出的自然数类型的静态和动态在\textbf{F}中通过这些定义是可推导的。\textbf{F}中数字的表示被称为邱奇多态数字（polymorphic Church numerals）。
+
+对自然数的可编码性展现了\textbf{F}至少和\textbf{T}表达能力相同。但是是否表达能力更强呢？当然！可以验证的是对于\textbf{T}的评价函数在\textbf{F}中是可定义的，尽管在\textbf{T}本身是不可定义的。
+然而，应用第九章给出的相同的对角参数，表现了\textbf{F}的评价函数在\textbf{F}中是不可定义的。我们也许可以拓展一下\textbf{F}来定义\textbf{F}的评价函数，但是只要所有的程序在拓展的语言中终止了，我们又会重新拥有不可定义的函数，即拓展语言的评价函数。
+
+\subsection{参数性概述}
+\textbf{F}中有一个显著的特征，即多态类型严重地约束了它们元素的行为。我们可以通过仅知道一个表达式的类型就可以证明一些有用的定理，而不需要看具体的代码。举一个例子，如果$i$是任意一个类型为$\forall (t.t\to t)$的表达式，那么它是一个等价函数。非正式地，当$i$被应用到类型$\tau$，和一个类型为$\tau$的参数，它会返回一个类型为$\tau$的值。
+但是因为在$i$被调用前，$\tau$是未知的，函数除了返回参数外别无选择，这意味着它本质上是一个等价函数。类似的，如果$b$是任意拥有类型$\forall (t.t \to t \to t)$的表达式，那么$b$等同于$\Lambda (t) \lambda (x:t) \lambda (y:t) x$，或者$\Lambda (t) \lambda (x:t) \lambda (y:t) y$。
+直觉上来看，当$b$被应用到给定类型的两个参数上时，唯一可能返回的值就是其中之一。
+
+可以证明只需要知道\textbf{F}中程序的类型就可以推断出它的性质，这叫做参数性（parametricity properties）。上面所述的函数$i$和函数$b$就是参数性的例子。这些性质有时候也叫“无约束定理”，因为它们来自定型“为了没有约束”，而不需要知道具体代码。
+在\textbf{F}中，我们不需要查看程序具体代码也可以证明一些其重要性质的例子反复出现。这种不可思议的事实的关键在于我们能够证明更深一层的性质，即\textbf{F}的参数性，并且可以应用到每一个用\textbf{F}写的程序。也可以认为是类型系统“提前证明”和该程序相关的很多有用的性质，从而不需要单独证明每个程序的性质。
+对于\textbf{F}的参数性定理解释了一个很显著的现象：只要一段代码通过检查，那么它就可以“有效”。参数性大量减少了良好定型的程序所存在的状态空间，从而有机会将程序员的错误减少到几乎没有。
+
+所以参数性定理如何工作呢？为避免陷入太多的技术细节（但是可以看第四十八章得到完整证明），我们给出主体思想的一个简单总结。任何一个\textbf{F}中的程序$i$拥有如下特征：
+\begin{center}
+  \textit{对于任意类型$\tau$和$\tau$的任意性质$\mathcal{P}$，那么如果$\mathcal{P}$在$x:\tau$中成立，那么$\mathcal{P}$在$i[\tau](x)$中成立。}
+\end{center}
+
+为了展示对于任意类型$\tau$，和任意$\tau$类型的变量$x$，表达式$i[\tau ](x)$等价于$x$。将$x_0: \tau$固定，然后考虑性质$\mathcal{P}_{x_0}$在$y:\tau$中成立当且仅当$y$和$x_0$等价。显然$\mathcal{P}$在$x_0$本身成立，因此通过上述$i$的性质，$i$将任何满足$\mathcal{P}_{x0}$性质的参数传出到一个满足$\mathcal{P}_{x0}$的结果，也就是说它将$x_0$传出到$x_0$。
+因为$x_0$是$\tau$类型的任意一个元素，紧接着$i[\tau]$是一个等价函数，在类型$\tau$上成立的$\lambda(x:\tau)x$。而因为$\tau$本身就是任意的，$i$是一个多态等价函数，$\Lambda (t)\lambda (x:t) x.$
+
+一个类似的证明足以展现对于之前定义的函数$b$，要么是$\Lambda (t) \lambda (x:t) \lambda (y:t) x$，要么是$\Lambda (t) \lambda (x:t) \lambda (y:t) y$。通过其类型的优势，函数$b$拥有参数性：
+\begin{center}
+  \textit{对于任意类型$\tau$和$\tau$的任意性质$\mathcal{P}$，那么如果$\mathcal{P}$在$x:\tau$和$y:\tau$中成立，那么$\mathcal{P}$在$b[\tau](x)(y)$中成立。}
+\end{center}
+
+选取任意一个类型$\tau$和任意两个$\tau$类型的变量。定义$\mathcal{Q}_{x0,y0}$在$z:\tau$中当且仅当$z$和$x_0$等价或者$z$和$y_0$等价。显然$\mathcal{Q_{x0,y0}}$包含$x_0$和$y_0$本身，通过提到的$b$的参数性，紧接着有$\mathcal{Q_{x0,y0}}$在$b[\tau](x_0)(y_0)$中成立，这也就是说它和$x_0$或者$y_0$等价。
+由于$\tau, x_0, y_0$都是任选的，这表示了$b$要么是$\Lambda (t) \lambda (x:t) \lambda (y:t) x$，要么是$\Lambda (t) \lambda (x:t) \lambda (y:t) y$。一个
+
+textbf{F}的参数性表现了函数更强的性质，例如上述提到的$i$和$b$。举一个例子，拥有类型$\forall (t.t \to t)$的函数$i$也满足以下条件：
+\begin{center}
+  如果$\tau$和$\tau'$是任意两种类型，并且$\mathcal{R}$是$\tau$和$\tau'$间的一个二元关系，那么对于任何$x:\tau$和$x':\tau'$，如果$\mathcal{R}$将$x$和$x'$关联，则$\mathcal{R}$将$i[\tau](x)$与$i[\tau'](x')关联。$
+\end{center}
+
+利用这个性质我们可以证明$i$和多态等价函数是相等的。特别的，如果$\tau$是任意类型，并且$g:\tau \to \tau$是任意该类型的函数，那么仅根据$i$的类型可知对于任意$x:\tau$，$i[\tau](g(x))$和$g(i[\tau](x))$是等价的。
+为了证明这一点，只需简单选取$\mathcal{R}$为$g$图，关系$\mathcal{R_{g}}$在$x$和$x'$中成立当且仅当$x'$和$g(x)$等价。
+$i$的参数性，在指定$R$和$g$后，陈述了如果$x'$和$g(x)$等同，那么$i[\tau](x_0)$和$g(i[\tau](x))$等同，也就是说$i[\tau](g(x))$和$g(i[\tau](x))$等同。
+为了展现$i$和等价函数是等同的，任意选择$x_0:\tau$，然后考虑到在$\tau$上的常数函数总是返回$x_0$，也就是说$i$表现和多态等价函数相同。
+
+\subsection{笔记}
+\textbf{F}是由Girard(1972)在证明理论的背景和Reynolds(1974)在程序语言的背景中介绍的。参数性的概念是由Strachey首先独立出来，但是直到Reynolds(1983)的工作后才被完整的发展。参数性定理中的术语“无约束定理”是由Wadler(1989)提出的。
+
+\subsection{练习}
+\begin{itemize}
+  \item 给出练习3.1中定义的$s$和$k$组合子的多态定义和类型
+  \item 定义\textbf{F}中的邱奇布尔值的类型\textit{bool}，定义类型\textit{bool}，并定义该类型的\textit{true}和\textit{false}，和条件式$if \ e \ then \ e_0 \ else \ e_1$，这里$e$即是这种类型。
+  \item 定义\textbf{F}中在第十五章中定义的自然列表表的归纳类型。\textit{提示}：定义一个列表的前驱表示（消去形式），然后定义自然数类型的模式。
+  \item 定义\textbf{F}中的任意归纳类型，$\mu (t.\tau \ )$。\textit{提示}：将练习16.3中的答案泛化。
+  \item 定义练习16.3中的类型$t$的列表，但元素类型$t$是不确定的。定义一个列表$l$中有限元素的集合，元素为$l$尾部中一些数字的头。现在认为$f: \forall (t.t \ list \to t \ list)$是上述类型中任意函数。可看出$f[\tau](l)$的元素是$l$中一个子集。所以$f$只能从输入列表中排列，赋值或者删除从而得到输出列表。 
+\end{itemize}
