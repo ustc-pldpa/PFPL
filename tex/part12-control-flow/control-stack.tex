@@ -1,0 +1,101 @@
+\chapter{控制栈}
+结构化动态语义在证明语言的性质（例如类型安全）时十分便利，但将其用于指导实现时却存在一些不便。结构化动态语义通过定义一些转换规则，以规定在面临一个表达式时，应该在表达式的何处执行下一条指令，从而定义该语言下程序的运行时行为。但是，结构化动态语义并没有阐明如何在表达式中寻找下一条指令执行的位置。为了将这个过程明确化，我们引入一个机制，称为\textit{控制栈}，在一些指令执行完后，控制栈中记录的内容为程序执行“仍需要做的剩余工作”。栈的使用消除了对转换规则的前提的需求，从而转换系统定义了一个\textit{抽象机}，此抽象机的操作完全由其当前状态包含的显式信息所确定，就像一台实际的计算机一样。
+
+本章中，我们将开发一个抽象机\textbf{K}，用于\textbf{PCF}中表达式的求值。该抽象机将承载原始指令执行步骤的上下文环境，和传递结果以确定下一执行步骤的过程进行显式化。我们还将证明，抽象机\textbf{K}和\textbf{PCF}在面临相同表达式时，总会得出相同的结果。
+
+\section{抽象机定义}
+在\textbf{PCF}中，抽象机\textbf{K}的一个状态s由一个控制栈k和一个闭式e组成。状态可具有下面两者之一的形式：
+
+1. \textit{求值状态}$k\,\triangleright\,e$ ，对应一个闭式e在控制栈k上的求值；
+
+2. \textit{返回状态}$k\,\triangleleft\,e$ ，其中 e val（e是值），对应栈k在面临一个闭合值e时的求值。
+
+记忆技巧：式子中间的符号“指向”控制栈中当前的“焦点部分”，即求值状态中的表达式或返回状态中的栈。
+
+控制栈代表了求值的上下文。它记录了求值的“当前位置”，即当前表达式的值需要返回的上下文位置。形式上，控制栈即是一个栈帧的链表：
+\begin{subequations}
+    \begin{gather}
+       \dfrac{}{\epsilon \; \mathsf{stack}}\\
+       \dfrac{f \; \mathsf{frame} \quad k\;\mathsf{stack}}{k;f\;\mathsf{stack}}
+    \end{gather}
+\end{subequations}
+抽象机\textbf{K}的栈帧由下面的规则归纳地定义：
+\begin{subequations}
+    \begin{gather}
+       \dfrac{}{\mathsf{s(-)} \; \mathsf{frame}}\\
+       \dfrac{}{\mathsf{ifz} \{ e_0;x.e_1 \} \mathsf{(-)} \; \mathsf{frame}}\\
+       \dfrac{}{\mathsf{ap(-;} e_2 \mathsf{)} \; \mathsf{frame}}
+    \end{gather}
+\end{subequations}
+
+栈帧对应\textbf{PCF}中动态语义的搜索规则。因此，我们不再需要依靠转换推导的结构来记录还未做的计算，而只需使用控制栈的栈帧对其作一个显式的记录。
+
+在\textbf{PCF}机器上，状态之间的转换判断是由一系列推理规则归纳地定义的。我们从自然数的规则开始，对后继符号应用急切动态语义：
+\begin{subequations}
+    \begin{gather}
+       \dfrac{}{k \, \triangleright \, \mathsf{z} \longmapsto k \, \triangleleft \, \mathsf{z}}\\
+       \dfrac{}{k \, \triangleright \, \mathsf{s(} e \mathsf{)} \longmapsto k; \mathsf{s(-)} \, \triangleright e}\\
+       \dfrac{}{k; \mathsf{s(-)} \, \triangleleft e \longmapsto k\, \triangleleft \mathsf{s(} e \mathsf{)}}
+    \end{gather}
+\end{subequations}
+给$\mathsf{z}$求值时，我们只需简单地返回它；给$\mathsf{s} (e)$求值时，我们将一个新的栈帧压栈，用于记录将来要做的后继符号，然后对$e$求值；当对$e$的求值返回$e'$时，我们返回$\mathsf{s} (e’)$到栈。
+
+接着，我们考虑条件语句的规则：
+\begin{subequations}
+    \begin{gather}
+       \dfrac{}{k \, \triangleright \, \mathsf{ifz} \{ e_0;x.e_1 \} (e) \longmapsto k; \mathsf{ifz} \{ e_0;x.e_1 \} (-) \triangleright e}\\
+       \dfrac{}{k; \mathsf{ifz} \{ e_0;x.e_1 \} (-) \triangleleft \mathsf{z} \longmapsto k \triangleright e_0}\\
+       \dfrac{}{k; \mathsf{ifz} \{ e_0;x.e_1 \} (-) \triangleleft \mathsf{s} (e) \longmapsto k \triangleright [e/x]e_1}
+    \end{gather}
+\end{subequations}
+条件表达式被求值时，将要做的条件判断操作被记录到栈帧中压栈，一旦条件表达式的值确定下来，条件判断操作就被求值（表达式是否为0）。例如在式28.4b中，条件表达式求值为0，则整个条件语句转换为求值e0；在式28.4c中，条件表达式不为零，于是将条件表达式的值绑定到x上，并对e1求值。
+
+最后，我们给出函数的\textit{call-by-name}求值规则，和一般递归式的规则：
+\begin{subequations}
+    \begin{gather}
+       \dfrac{}{k \, \triangleright \, \mathsf{lam} \{ \tau \} (x.e) \longmapsto k \triangleleft \mathsf{lam} \{ \tau \} (x.e)}\\
+       \dfrac{}{k \triangleright \mathsf{ap} (e_1;e_2) \longmapsto k; \mathsf{ap} (-;e_2) \triangleright e_1 }\\
+       \dfrac{}{k; \mathsf{ap} (-;e_2) \triangleleft \mathsf{lam} \{ \tau \} (x.e) \longmapsto k \triangleright [e_2/x]e }\\
+       \dfrac{}{k \triangleright \mathsf{fix} \{ \tau \} (x.e) \longmapsto k \triangleright [ \mathsf{fix} \{ \tau \} (x.e)/x]e}
+    \end{gather}
+\end{subequations}
+注意，一般递归式的求值不需要占用栈空间。
+
+抽象机\textbf{K}的初始状态和结束状态由下列规则定义：
+\begin{subequations}
+    \begin{gather}
+       \dfrac{}{\epsilon \triangleright \mathsf{initial}}\\
+       \dfrac{e \; \mathsf{val}}{\epsilon \triangleleft e \; \mathsf{final}}
+    \end{gather}
+\end{subequations}
+
+\section{安全性}
+为定义和证明\textbf{PCF}机器的安全性，我们需要引入新的类型断言$k \, \triangleleft : \tau $，它表示栈$k$期望一个类型为$\tau$的值。这个断言由下列规则递归地定义：
+\begin{subequations}
+    \begin{gather}
+       \dfrac{}{\epsilon \, \triangleleft : \tau}\\
+       \dfrac{k \triangleleft : \tau ' \quad f: \tau \rightsquigarrow \tau '}{k;f \, \triangleleft : \tau}
+    \end{gather}
+\end{subequations}
+这个定义使用了一个辅助断言$f: \tau \rightsquigarrow \tau '$,它表示栈帧$f$接受一个$\tau$类型的值，返回一个$\tau '$类型的值。
+\begin{subequations}
+    \begin{gather}
+       \dfrac{}{\mathsf{s} (-): \mathsf{nat} \rightsquigarrow \mathsf{nat}}\\
+       \dfrac{e_0: \tau \quad x: \mathsf{nat} \vdash e_1: \tau}{\mathsf{ifz} \{ e_0;x.e_1 \} (-): \mathsf{nat} \rightsquigarrow \tau}\\
+       \dfrac{e_2: \tau_2}{\mathsf{ap} (-;e_2): \mathsf{parr} ( \tau_2 ; \tau ) \rightsquigarrow \tau}
+    \end{gather}
+\end{subequations}
+如果PCF机器的栈和表达式的组分匹配，那么该机器的状态是良型的：
+\begin{subequations}
+    \begin{gather}
+       \dfrac{k \, \triangleleft : \tau \quad e: \tau}{k \triangleright e \; \mathsf{ok}}\\
+       \dfrac{k \, \triangleleft : \tau \quad e: \tau \quad e \; \mathsf{val}}{k \, \triangleleft e \; \mathsf{ok}}
+    \end{gather}
+\end{subequations}
+PCF机器安全性的证明留作练习。
+
+\textbf{定理 28.1}（安全性） :
+
+1. 如果$s \; \mathsf{ok}$，并且$s \longmapsto s'$，那么有$s' \mathsf{ok}$；
+
+2. 如果$s \; \mathsf{ok}$，那么有$s \; \mathsf{final}$或存在$s'$使$s \longmapsto s'$成立。
