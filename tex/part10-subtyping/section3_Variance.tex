@@ -1,0 +1,203 @@
+\section{类型变体}\label{section:structural_subtyping_Variance}
+除了小节\ref{section:structural_subtyping_Varieties_of_Subtyping}中讨论到的基本子类型的定型规则外，
+类型构造器的子类型的定型的作用同样不容小觑。
+一个类型构造器与它的参数\textit{协变}，假如这个参数的子类型定型被构造器所保留。
+而如果这个参数的子类型的定型与构造器相反，则称为\textit{逆变}。
+%if S<:T, then subtype[T]<:subtype[S]
+如果被构造类型的子类型的定型不受参数的子类型的定型影响，则称为\textit{不变}。
+%covariant和contravariant的翻译参照数学和控制论中的翻译
+
+\paragraph{积类型和和类型}
+有限积类型与它的每个域都是\textit{协变}的。如果$e$是类型$\sum_{i\in I}\tau_i {'}$的，
+并且投影$e\cdot j$的类型为$\tau_j$，那么必然有对一切$j \in I$有$\tau_j{'}<:\tau_j$。
+%it suffices to require,字面意思上是前假设是后面式子的充分条件，但直译有些拗口。
+\begin{equation}
+    \frac{(\forall i \in I)\tau_i{'}<:\tau_i}{\prod_{i\in I}\tau_i{'}<:\prod_{i \in I}\tau_i}
+\end{equation}
+这条规则隐式地指出投影的动态规则不应该受有限积类型的值的某个域的确切类型的影响。
+
+有限和类型也是协变的，因为父类的某个值的条件分析的每个分支应是对应的被加类型的一个值，
+因此提供对应子类型的被加类型的值是可行的。
+\begin{equation}
+    \frac{(\forall i \in I)\tau_i{'}<:\tau_i}{\sum_{i\in I}\tau_i{'}<:\sum_{i \in I}\tau_i}
+\end{equation}
+%case analysis应该与其他人的翻译一致
+
+\paragraph{部分函数类型}
+函数类型构造器的变体更为复杂。我们先来考虑函数类型在其值域内的变体。假设$e:\tau_1 \rightharpoonup \tau_2{'}$，
+那么如果$e_1:\tau_1$，则有$e(e_1):\tau_2{'}$。
+并且如果$\tau_2{'}:\tau_2$，则还有$e(e_1):\tau_2$。
+\begin{equation}
+    \frac{\tau_2{'}:\tau_2}{\tau_1 \rightharpoonup \tau_2{'}<:\tau_1 \rightharpoonup \tau_2}
+\end{equation}
+只要$\tau_2{'}:\tau_2$，那么每个给出类型$\tau_2{'}$的值的函数同样给出了类型为$\tau_2$的值。
+因此，函数类型的构造器在其值域内协变。
+
+现在我们来考虑函数类型在其定义域内的变体。仍假设$e:\tau_1 \rightharpoonup \tau_2{'}$，
+那么$e$可以被应用到任何类型为$\tau_1$的值来获得一个类型为$\tau_2$的值。
+因此，根据包容原则，这个函数也可以被引用到$\tau_1$的子类型$\tau_1{'}$的任何值上，并且仍能给出一个类型为$\tau_2$的值。
+于是，我们也可以认为$e$具有类型$\tau_1{'} \rightharpoonup \tau_2$。
+\begin{equation}
+    \frac{\tau_1{'}:\tau_1}{\tau_1 \rightharpoonup \tau_2<:\tau_1{'} \rightharpoonup \tau_2}
+\end{equation}
+函数类型在定义域内是逆变的。一定要注意子类型关系的方向是和该规则的结论中的方向相反的！
+
+结合这两条规则我们可以得到以下逆变和协变函数类型的通用规则：
+\begin{equation}
+    \frac{\tau_1{'}:\tau_1\;\;\;\tau_2{'}:\tau_2}{\tau_1 \rightharpoonup \tau_2<:\tau_1{'} \rightharpoonup \tau_2}
+\end{equation}
+留意定义域的顺序是颠倒的！
+
+\paragraph{递归类型}
+\textbf{FPC}语言不仅拥有子类型定型行为和全函数类型相同的部分函数类型，还有前文描述过其行为的积类型和和类型。
+除此之外，它还有递归类型，这种类型引入了一些容易成为程序设计错误来源的微妙之处。
+为了获得一些启发，我们考虑带标签的节点为自然数的二叉树，
+$$
+    \texttt{rec}\;t\;\texttt{is}\;[\texttt{empty} \hookrightarrow \texttt{unit},\texttt{binode} \hookrightarrow 
+    \langle \texttt{data} \hookrightarrow \texttt{nat},\texttt{lft} \hookrightarrow t, \texttt{rht} \hookrightarrow t \rangle ] 
+$$
+以及节点不带有数据的“裸”二叉树类型，
+$$
+    \texttt{rec}\;t\;\texttt{is}\;[\texttt{empty} \hookrightarrow \texttt{unit},\texttt{binode} \hookrightarrow 
+    \langle \texttt{lft} \hookrightarrow t, \texttt{rht} \hookrightarrow t \rangle ] 
+$$
+。它们中是否有一个是另一个的子类型呢？直观上看，我们可能会觉得有标签的二叉树是裸二叉树的\textit{子类型}，
+因为当我们使用一棵裸二叉树时，只要简单地无视标签的存在就可以了。
+
+现在，考虑一棵裸“二三”树。它有两种节点，有些有两个后代，有些有三个：
+$$
+    \texttt{rec}\;t\;\texttt{is}\;[\texttt{empty} \hookrightarrow \texttt{unit},\texttt{binode} \hookrightarrow 
+    \tau_2,\texttt{trinode} \hookrightarrow \tau_3] 
+$$
+其中
+$$
+    \tau_2 \triangleq \langle \texttt{lft} \hookrightarrow t,\texttt{rht} \hookrightarrow t \rangle
+$$
+并且
+$$
+    \tau_3 \triangleq \langle \texttt{lft} \hookrightarrow t,\texttt{mid} \hookrightarrow t,\texttt{rht} \hookrightarrow t \rangle
+$$
+在上述两个树类型中，有什么样的子类型关系成立？直觉上，裸二三树应该是裸二叉树的\textit{父类型}，
+因为任何二三树的使用都必须要进行三路的情况分析，这就包含了只含两种形式的二叉树。
+
+为了掌握这些例子所展现出的模式，我们需要递归类型的子类型规则。
+下面这条规则似乎很有吸引力：
+\begin{equation}\label{equation:intuitive_recursive_subtyping}
+    \frac{t\;\texttt{type}\vdash\tau{'}<:\tau}{\texttt{rec}\;t\;\texttt{is}\;\tau{'}<:\texttt{rec}\;t\;\texttt{is}\;\tau}
+\end{equation}
+其含义是，为了检查某个递归类型是否是另一个递归类型的子类型，我们只需要比较它们的函数体，并将限定变量当作是参数。
+值得注意的是，由于子类型关系的自反性，自然有$t<:t$，于是我们可以在$\tau{'}<:\tau$的推导中利用这个事实。
+
+规则\ref{equation:intuitive_recursive_subtyping}印证了前述的带标签二叉树和裸二叉树之间的直觉上貌似合理的子类型的定型。
+推导出这个事实所需的是检查子类型关系
+$$
+    \langle \texttt{data} \hookrightarrow \texttt{nat},\texttt{lft} \hookrightarrow t,\texttt{rht} \hookrightarrow t \rangle <:\langle \texttt{lft}\hookrightarrow t,\texttt{rht} \hookrightarrow t \rangle
+$$
+在$t$上是否一般是成立的，事实明显如此。
+
+不幸的是，规则\ref{equation:intuitive_recursive_subtyping}同时也接受了一些\textit{不正确}的子类型关系，而不仅仅是正确的哪些。
+作为一个反例，我们考虑递归类型
+$$
+    \tau {'} = \texttt{rec}\;t\;\texttt{is}\;\langle\texttt{a}\hookrightarrow t \rightharpoonup \texttt{nat},\texttt{b} \hookrightarrow t \rightharpoonup \texttt{int}\rangle
+$$
+和
+$$
+    \tau  = \texttt{rec}\;t\;\texttt{is}\;\langle\texttt{a}\hookrightarrow t \rightharpoonup \texttt{nat},\texttt{b} \hookrightarrow t \rightharpoonup \texttt{int}\rangle
+$$
+为了这个例子我们假设\texttt{nat}<:\texttt{int}，于是利用规则\ref{equation:intuitive_recursive_subtyping}
+我们可以推出$\tau{'}<:\tau$，而这是不正确的。我们令$e:\tau$等于表达式
+$$
+    \texttt{fold}(\langle \texttt{a} \hookrightarrow \lambda(x:\tau{'})4,\texttt{b} \hookrightarrow \lambda(x:\tau{'}q((\texttt{unfold}(x)\cdot\texttt{a})(x))  \rangle)
+$$
+其中$q:\texttt{nat}\rightharpoonup \texttt{nat}$是离散平方根函数。由于$\tau{'}<:\tau$，
+$e:\tau$也是成立的。因此
+$$
+    \texttt{unfold}(e):\langle a \hookrightarrow \tau \rightharpoonup \texttt{int},\texttt{b} \hookrightarrow \tau \rightharpoonup \texttt{int} \rangle 
+$$
+现在，令$e{'}:\tau$等于表达式
+$$
+    \texttt{fold}(\langle \texttt{a} \hookrightarrow \lambda (x:\tau)-4,\texttt{b}\hookrightarrow \lambda (x:\tau)0 \rangle)
+$$
+（有关$e{'}$最重要的一点是方法\texttt{a}返回了一个负数，方法\texttt{b}并不重要）。
+作为证明的结束，观察到
+$$
+    (\texttt{unfold}(e)\cdot \texttt{b})(e{'}) \longmapsto^* q(-4)
+$$
+这一一个卡死的状态。我们推导出了一个类型良好的程序，它却进入了类型死循环，这违背了类型安全原则。
+
+规则\ref{equation:intuitive_recursive_subtyping}因此是错误的。但是，哪里出错了呢？
+前述规则之所以错误，是因为选择了用单一变量代表两种递归类型，这种做法无法正确地模拟自引用。
+从结果上来看，我们仅仅在检查两个不同的递归类型的函数体是否符合子类型关系后，就认定它们相同。
+但这显然是不对的！
+这种做法没有考虑到递归类型中的自引用性质。
+在上述推导的左侧，限定变量代表子类型，而在右侧，限定变量却代表父类型。
+混淆这两者会导致刚才说明的不可靠问题。
+
+在自引用中常见的情况是，解决子类型的定型问题的方法是\textit{假设}我们所要证明的东西，
+并检查通过检验递归类型的函数体来确定这个假设能否保持成立。
+为了做到这一点，我们使用了假设断言，它的形式是$\Delta\vdash\tau{'}<:\tau$，
+其中$\Delta$包含了对$t\;\texttt{type}$和$t<:\tau$的假设，
+这些假设声明了一个新的类型变量$t$，它在$\Delta$以外的地方都没有被声明过。
+利用这种假设断言，我们可以表述出以下对递归类型的正确的子类型的定型规则：
+\begin{equation}
+    \frac{\Delta,t\;\texttt{type},t{'}<:t\vdash \tau{'}<:\tau\;\;\;\Delta,t{'}\;\texttt{type}\vdash \tau{'}\;\texttt{type}\;\;\;\Delta,t\;\texttt{type}\vdash \tau\;\texttt{type}}
+    {\Delta\vdash\texttt{rec}\;t{'}\;\texttt{is}\;\tau{'}<:\texttt{rec}\;t\;\texttt{is}\;\tau}
+\end{equation}
+这条规则的含义是，为了确定是否有$\texttt{rec}\;t{'}\;\texttt{is}\;\tau{'}<:\texttt{rec}\;t\;\texttt{is}\;\tau$，
+我们先假设$t{'}<:t$，这是因为$t{'}$和$t$代表对应的递归类型，
+然后检查在此假设下是否有$\tau{'}<:\tau$。
+对于前述的不满足可靠性的子类型定型例子，用此条规则它是不可推导的，
+子类型的定型假设与函数类型在定义域的逆变性是相互矛盾的，这一点很有启发性。
+
+\paragraph{量化类型}
+考虑第16和17章中讨论的具有全称量化类型和存在量化类型的扩展$textbf{FPC}$。
+量化子的类型变体原则表明它们与量化类型是一致协变的：
+\begin{subequations}
+    \begin{gather}
+        \frac{\Delta,t\;\texttt{type}\vdash \tau{'}<:\tau}
+        {\Delta\vdash\forall(t.\tau{'})<:\forall(t.\tau)}
+        \\
+        \frac{\Delta,t\;\texttt{type}\vdash \tau{'}<:\tau}
+        {\Delta\vdash\exists(t.\tau{'})<:\exists(t.\tau)}
+    \end{gather}
+\end{subequations}
+因此，我们可以推出替代原则：
+\begin{lemma}
+    如果$\Delta,t\;type\vdash\tau_1<:\tau_2$，并且$\Delta\vdash\tau\;type$，那么$\Delta\vdash[\tau / t]\tau_1<:[\tau/t]\tau_2$。
+\end{lemma}
+\begin{proof}
+    通过子类型的定型推导归纳得出。
+\end{proof}
+
+显然上述量化子的变体规则和包容原则是一致的。举个例子，一组子类型$\exists(t.\tau{'})$包含
+一个表示类型$\rho$和类型为$[\rho/t]\tau{'}$的一个实现$e$。
+但是如果$t\;\texttt{type}\vdash\tau{'}<:\tau$，我们可以通过替代关系$[\rho/t]\tau{'}<:[\rho/t]\tau$， 
+得到$e$也是类型为$[\rho/t]\tau$的一个实现。
+于是，这一组子类型都相对于父类型有如上关系。
+
+很自然地，我们可以将子类型的定型扩展到其他量化子，只要允许特定类型的所有子类型的量化。这种做法叫做\textit{限定量化}。
+\begin{subequations}
+    \begin{gather}
+        \frac{}
+        {\Delta,t\;\texttt{type},t<:\tau\vdash t<:\tau}
+        \\
+        \frac{\Delta\vdash\tau:: \texttt{T}}
+        {\Delta\vdash\tau<:\tau}
+        \\
+        \frac{\Delta\vdash\tau{''}<:\tau{'}\;\;\;\Delta\vdash\tau{'}<:\tau}
+        {\Delta\vdash\tau{''}<:\tau}
+        \\
+        \frac{\Delta\vdash\tau_1{'}<:\tau_1\;\;\;\Delta,t\;\texttt{type},t<:\tau_1{'}\vdash\tau_2<:\tau_2{'}}
+        {\Delta\vdash\forall t<:\tau_1.\tau_2<:\forall t<:\tau_1{'}.\tau_2{'}}
+        \label{equation:bounded_qualification_universal_quantified_type}
+        \\
+        \frac{\Delta\vdash\tau_1<:\tau_1{'}\;\;\;\Delta,t\;\texttt{type},t<:\tau_1\vdash\tau_2<:\tau_2{'}}
+        {\Delta\vdash\exists t<:\tau_1.\tau_2<:\exists t<:\tau_1{'}.\tau_2{'}}
+        \label{equation:bounded_qualification_existential_quantified_type}
+    \end{gather}
+\end{subequations}
+%LaTeX中没有大写tau的编码，如果直接写英文字母的话字体会有问题，
+%正确的做法是\setmathfont{XITS}来使用Unicode数学字体
+%由于没有unicode-math宏包，在这里直接用等宽字体代替了。
+规则\ref{equation:bounded_qualification_universal_quantified_type}表明全称量化子在其限定范围内是逆变的，
+而规则\ref{equation:bounded_qualification_existential_quantified_type}表明存在量化子在其限定范围内是协变的。
