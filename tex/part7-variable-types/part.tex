@@ -208,4 +208,22 @@ $$nat \to \forall (t.t \to (t \to t) \to t).$$
 
 textbf{F}的参数性表现了函数更强的性质，例如上述提到的$i$和$b$。举一个例子，拥有类型$\forall (t.t \to t)$的函数$i$也满足以下条件：
 \begin{center}
+  如果$\tau$和$\tau'$是任意两种类型，并且$\mathcal{R}$是$\tau$和$\tau'$间的一个二元关系，那么对于任何$x:\tau$和$x':\tau'$，如果$\mathcal{R}$将$x$和$x'$关联，则$\mathcal{R}$将$i[\tau](x)$与$i[\tau'](x')关联。$
 \end{center}
+
+利用这个性质我们可以证明$i$和多态等价函数是相等的。特别的，如果$\tau$是任意类型，并且$g:\tau \to \tau$是任意该类型的函数，那么仅根据$i$的类型可知对于任意$x:\tau$，$i[\tau](g(x))$和$g(i[\tau](x))$是等价的。
+为了证明这一点，只需简单选取$\mathcal{R}$为$g$图，关系$\mathcal{R_{g}}$在$x$和$x'$中成立当且仅当$x'$和$g(x)$等价。
+$i$的参数性，在指定$R$和$g$后，陈述了如果$x'$和$g(x)$等同，那么$i[\tau](x_0)$和$g(i[\tau](x))$等同，也就是说$i[\tau](g(x))$和$g(i[\tau](x))$等同。
+为了展现$i$和等价函数是等同的，任意选择$x_0:\tau$，然后考虑到在$\tau$上的常数函数总是返回$x_0$，也就是说$i$表现和多态等价函数相同。
+
+\subsection{笔记}
+\textbf{F}是由Girard(1972)在证明理论的背景和Reynolds(1974)在程序语言的背景中介绍的。参数性的概念是由Strachey首先独立出来，但是直到Reynolds(1983)的工作后才被完整的发展。参数性定理中的术语“无约束定理”是由Wadler(1989)提出的。
+
+\subsection{练习}
+\begin{itemize}
+  \item 给出练习3.1中定义的$s$和$k$组合子的多态定义和类型
+  \item 定义\textbf{F}中的邱奇布尔值的类型\textit{bool}，定义类型\textit{bool}，并定义该类型的\textit{true}和\textit{false}，和条件式$if \ e \ then \ e_0 \ else \ e_1$，这里$e$即是这种类型。
+  \item 定义\textbf{F}中在第十五章中定义的自然列表表的归纳类型。\textit{提示}：定义一个列表的前驱表示（消去形式），然后定义自然数类型的模式。
+  \item 定义\textbf{F}中的任意归纳类型，$\mu (t.\tau \ )$。\textit{提示}：将练习16.3中的答案泛化。
+  \item 定义练习16.3中的类型$t$的列表，但元素类型$t$是不确定的。定义一个列表$l$中有限元素的集合，元素为$l$尾部中一些数字的头。现在认为$f: \forall (t.t \ list \to t \ list)$是上述类型中任意函数。可看出$f[\tau](l)$的元素是$l$中一个子集。所以$f$只能从输入列表中排列，赋值或者删除从而得到输出列表。 
+\end{itemize}
