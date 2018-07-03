@@ -13,11 +13,11 @@
 		& & \(\mathtt{ifz}\{e_0; x.e_1\}(e)\) & \(\mathtt{ifz}\ e\ \{\mathtt{z} \hookrightarrow e_0 | \mathtt{s}(x) \hookrightarrow e_1\}\)　& 零检验 \\
 		& & \(\mathtt{lam}\{\tau\}(x.e)\) & \(\lambda\ (x:\tau)\ e\)　& 抽象 \\
 		& & \(\mathtt{ap}(e_1;e_2)\) & \(e_1(e_2)\) & 应用　\\
-		& & \(\mathtt{fix}{\tau}(x.e)\) & \(\mathtt{fix}\ x:\tau\ \mathtt{is}\ e\)　& 递归
+		& & \(\mathtt{fix}\{\tau\}(x.e)\) & \(\mathtt{fix}\ x:\tau\ \mathtt{is}\ e\)　& 递归
 	\end{tabular}
-\end{table}
+end{table}
 
-表达式\(\mathtt{fix}{\tau}(x.e)\)是\gls{general recursion}，后面会有具体的讨论；
+表达式\(\mathtt{fix}\{\tau\}(x.e)\)是\gls{general recursion}，后面会有具体的讨论；
 而表达式\(\mathtt{ifz}\{e_0; x.e_1\}(e)\)根据\(e\)的值是否是\(\mathtt{z}\)，当不是时绑定前驱给\(x\)。
 
 \textbf{PCF}的静态语义是由以下规则递归地定义的：
