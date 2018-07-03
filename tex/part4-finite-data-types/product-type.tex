@@ -1,0 +1,236 @@
+\chapter{积类型}
+
+\noindent{由两个类型合成的\textit{二元积类型(binary product)}由\textit{有序的值对(ordered pairs)}组成，每个值按指定的类型顺序排列。
+积类型对应的消去形式是\textit{投射(projections)}，即选择值对中的第一个或第二个值。\textit{空积(nullary product)}，或称\textit{Unit类型}，
+是不含任何值的“空元组”组成的类型，且这种类型不具有相关的消去形式。积类型可以有\textit{惰性动态(lazy dynamics)}策略和\textit{急迫动态(eager dynamics)}策略。
+在惰性动态策略中，不管组成值对的元素是否是值类型，该值对都被看作一个值；直到在另一个计算中访问和使用该值对时，它们的值才被计算。
+在急迫动态策略中，只有该值对的两个元素均为值，这个值对才为值；当该值对被创建时，它的值就被计算出来。}
+
+更一般地，我们还可以考虑\textit{有限积类型(finite product)}，$\langle\tau_i \rangle_{i\in I}$，有一给\textit{有限索引集}$I$进行索引。
+有限积类型中的元素为\textit{集合I索引的元组(I-indexed tuples)}，对任意的$i\in I$，其中的第$i$个元素为$\tau_i$类型。
+这些元素可以由\textit{I-索引的投射(I-indexed projection)}来访问，是二元积类型投射操作的一般化推广。
+有限积类型有几个特例，如当$I = \{ 0, \dots, n-1\}$时，有限积被称为\textit{n元组(n-tuples)}，当I为有限的符号集时，有限积被称为\textit{有标签的元组(labeled tuples)}，或称\textit{记录(records)}。
+与二元积类型相似，有限积类型也同时可以被或惰性地或急迫地解释。
+
+
+\section{空积与二元积类型}
+\noindent{积类型的抽象语法由以下规则确定：}
+\begin{equation*}
+\begin{aligned}
+Typ \qquad \tau \quad \Coloneqq \quad &unit\quad &unit \quad &\mbox{空积类型}
+\\
+&prod(\tau_1, tau_2) \quad &\tau_1 \times \tau_2 \quad &\mbox{二元积类型}
+\\
+Exp \qquad e \quad \Coloneqq \quad &triv \quad &\langle \rangle \quad &\mbox{空元组}
+\\
+&pair(e_1; e_2) \quad &\langle e_1,e_2 \rangle \quad &\mbox{有序值对}
+\\
+&pr[l](e) \quad &e \cdot l \quad &\mbox{左投影}
+\\
+&pr[r](e) \quad &e \cdot r \quad &\mbox{右投影}
+\end{aligned}
+\end{equation*}
+
+\noindent{因为空元组中无法提取出值，故Unit类型不存在消去形式。}
+
+积类型的静态推理规则如下所示：
+\begin{subequations}
+    \begin{gather}
+    \overline{\Gamma \vdash \langle \rangle : unit} \\
+    \frac{\Gamma \vdash e_1: \tau_1 \qquad \Gamma \vdash e_2 : \tau_2}
+         {\Gamma \vdash \langle e_1,e_2 \rangle : \tau_1 \times \tau_2} \\
+    \frac{\Gamma \vdash e : \tau_1 \times \tau_2}
+         {\Gamma \vdash e \cdot l : \tau_1} \\
+    \frac{\Gamma \vdash e : \tau_1 \times \tau_2}
+         {\Gamma \vdash e \cdot r : \tau_r}
+    \end{gather}
+\end{subequations}
+
+积类型的动态推理规则如下所示：
+\begin{subequations}
+    \begin{gather}
+    \overline{\langle \rangle \quad val} \\
+    \frac{[e_1 \quad val] \qquad [e_2 \quad val]}
+    {\langle e_1, e_2 \rangle \quad val} \\
+    \left[\frac{e_1 \mapsto e'_{1} }
+    {\langle e_1, e_2 \rangle \mapsto \langle e'_{1}, e_2 \rangle}
+    \right] \\
+    \left[\frac{e_1 \quad val \qquad e_2 \mapsto e'_{2} }
+    {\langle e_1, e_2 \rangle \mapsto \langle e'\_{1}, e'_2 \rangle}
+    \right] \\
+    \frac{e \mapsto e'}{e \cdot l \mapsto e' \cdot l} \\
+    \frac{e \mapsto e'}{e \cdot r \mapsto e' \cdot r} \\
+    \frac{[e_1 \quad val] \qquad [e_2 \quad val]}
+    {\langle e_1, e_2 \rangle \cdot l \mapsto e_1} \\
+    \frac{[e_1 \quad val] \qquad [e_2 \quad val]}
+    {\langle e_1, e_2 \rangle \cdot r \mapsto e_2}
+    \end{gather}
+\end{subequations}
+
+\noindent{其中，方括号中的规则在惰性动态策略中被忽略，被包含在急迫动态配对规则中。}
+
+安全定理(safety theorem)对惰性动态策略和急切动态均适用，在这两种情况下都以相似的证明路线加以证明。
+
+\begin{theorem}[安全定理]\label{theorem:safety}
+1. 如果$e:\tau$且$e\mapsto e'$成立，则$e':\tau$.
+
+2. 如果$e:\tau$，则$e\quad val$或存在一个$e'$使得$e\mapsto e'$.
+\end{theorem}
+\begin{proof}
+保留性(preservation)可以通过规则(10.2)定义的转换归纳证明。
+进展(progress)可以通过规则(10.1)定义的类型归纳证明。
+\end{proof}
+
+\section{有限积类型}
+\noindent{有限积类型的语法由以下规则定义：}
+\begin{equation*}
+\begin{aligned}
+Typ \qquad \tau \quad \Coloneqq \quad &prod(\{i \hookrightarrow \tau_i \}_{i\in I})
+\quad &\langle \tau_i \rangle_{i\in I} \quad &\mbox{积类型} \\
+Exp \qquad e \quad \Coloneqq \quad &tpl(\{i \hookrightarrow e_i \}_{i\in I})
+\quad &\langle e_i \rangle_{i\in I} \quad &\mbox{元组} \\
+&pr[i](e) \quad &e \cdot i \quad &\mbox{投影}
+\end{aligned}
+\end{equation*}
+
+\noindent{变量$I$代表一个有限的用于构造积类型\textit{索引集}。对于每一个$i\in I$，
+$prod(\{i \hookrightarrow \tau_i \}_{i\in I})$类型，或简称$\prod_{i\in I} \tau_i$类型，即为有着类型$\tau_1$的表达式$e_i$的\textit{I-元组}的类型。
+每一个\textit{I-元组}都有着形如$tpl(\{i \hookrightarrow e_i \}_{i\in I})$，或简称为$\langle e_i \rangle_{i\in I}$的格式，
+对于每一个$i\in I$，\textit{I-元组}$e$的第$i$个投影被写作$pr[i](e)$，或简写为$e\cdot i$。}
+
+当$I=\{i_1,\dots,i_n\}$时，\textit{I-元组}可以被写成以下格式：
+$$\langle i_1 \hookrightarrow \tau_1, \dots, i_n \hookrightarrow \tau_n \rangle$$
+以此来显式地将每一个索引$i\in I$和一个对应的类型联系起来。类似的，我们也可以将其写成
+$$\langle i_1 \hookrightarrow e_1, \dots, i_n \hookrightarrow e_n \rangle$$
+来表示\textit{I-元组}的第$i$个元素为$e_i$。
+
+有限积类型可以通过将$I$设置为空或两元素集合$\{l,r\}$来分别生成空积或二元积类型。
+实际使用中，$I$通常被指定为一个有限的符号集合，增强元组中元素标签的可读性。
+
+静态的有限积类型遵循以下规则：
+\begin{subequations}
+    \begin{gather}
+    \frac{\Gamma \vdash e_1 : \tau_1 \quad \dots \quad \Gamma \vdash e_n : \tau_n}
+    {\Gamma \vdash \langle i_1 \hookrightarrow e_1,\dots,i_n\hookrightarrow e_n \rangle
+    : \langle i_1 \hookrightarrow \tau_1,\dots,i_n \hookrightarrow \tau_n \rangle} \\
+    \frac{\Gamma \vdash e : : \langle i_1 \hookrightarrow \tau_1,\dots,i_n \hookrightarrow \tau_n \rangle
+    \quad (1\leq k \leq n)}
+    {\Gamma \vdash e \cdot i_k : \tau_k}
+    \end{gather}
+\end{subequations}
+
+\noindent{在规则ref{10.3b}中索引$i_k \in I$是索引集$I$中的一个\textit{特定的}元素，
+在规则ref{10.3a}中，索引$i_1,\dots,i_n$覆盖了整个索引集合$I$。}
+
+有限积类型的动态规则如下：
+\begin{subequations}
+    \begin{gather}
+    \frac{[e_1 \quad val \quad \dots \quad e_n \quad val]}
+    {\langle i_1 \hookrightarrow e_1,\dots,i_n\hookrightarrow e_n \rangle \quad val} \\
+    \left[
+        \frac{\left\{\
+        \begin{array}{l}
+            e_1 \quad val \quad \dots \quad e_{j-1} val \quad e'_1=e_1 \quad \dots \quad e'_{j-1}=e_{j-1}  \\
+            e_j \mapsto e'_j \quad e'_{j+1}=e_{j+1} \quad \dots \quad e'_n=e_n
+        \end{array}
+        \right\}}
+        {\langle i_1 \hookrightarrow e_1,\dots,i_n\hookrightarrow e_n \rangle
+        \mapsto \langle i_1 \hookrightarrow e'_1,\dots,i_n\hookrightarrow e'_n \rangle}
+    \right] \\
+    \frac{e \mapsto e'}{e\cdot i \mapsto e' \cdot i} \\
+    \frac{[\langle i_1 \hookrightarrow e_1,\dots,i_n\hookrightarrow e_n \rangle \quad val]}
+    {\langle i_1 \hookrightarrow e_1,\dots,i_n\hookrightarrow e_n \rangle \cdot i_k \mapsto e_k}
+    \end{gather}
+\end{subequations}
+
+\noindent{按照以上公式所给的，规则ref{10.4b}制定了一个元组的组成元素的值应该以\textit{某种}顺序来进行计算，
+没有指定应该以何种顺序来空滤这些元素。通过对索引集合施加一个总的顺序来施加一个评估顺序，
+并根据这个顺序进行对组成元素的计算并不困难，但技术上的实现有一点复杂。}
+
+\begin{theorem}[安全定理]\label{theorem:safety2}
+如果$e:\tau$，则$e\quad val$或存在一个$e'$使得$e':\tau$且$e\mapsto e'$.
+\end{theorem}
+\begin{proof}
+安全定理被分解成两部分引理：进展(Progress)和保留性(preservation)，这两个引理的证明与10.1中的证明相同。
+\end{proof}
+
+\section{原始相互递归}
+\noindent{使用积类型，我们可以简化\textbf{T}的原始递归式构造，以便只有前驱的递归结果，而不是前驱本身，被传递给后继分支。
+写成$iter\{e_0;x.e_1\}(e)$，我们就可以将$rec\{e_0;x.y.e_1\}$定义为$e'\cdot r$，这里的$e'$为：}
+$$
+iter\{\langle z,e_0 \rangle ; x'. \langle s(x'\cdot l), [x' \cdot r/x]e_1\rangle \}(e)
+$$
+\noindent{主要思想是归纳地计算数字$n$和对$n$的递归调用的结果，以此我们就可以计算出$n+1$和另一个使用$e_1$的递归式的结果。
+基本情况是直接计算为0、$e_0$对。很容易检查这个定义是否保留了递归的静态和动态。}
+
+我们也可以使用积类型来实现\textit{相互的原始递归(mutual primitive recursion)}，
+我们通过原始递归同时定义两个函数。例如，考虑如下的递归方程，定义了两个自然数集上的数学函数：
+\begin{equation*}
+    e(0) = 1
+\end{equation*}
+\begin{equation*}
+    o(0) = 0
+\end{equation*}
+\begin{equation*}
+    e(n+1) = o(n)
+\end{equation*}
+\begin{equation*}
+    o(n+1) = e(n)
+\end{equation*}
+
+\noindent{直观上看，当且仅当$n$是偶数时，$e(n)$非零，此外，当且仅当$n$是奇数时，$o(n)$非零。}
+
+为了在使用积类型的\textbf{T}中定义这些函数，我们首先定义一个辅助函数$e_{eo}$，它的类型为：
+$$nat \rightarrow (nat \times nat)$$
+$e_{eo}$函数通过在递归调用中来回交换结果来同时计算两个结果：
+$$
+\lambda (n:nat\times nat) iter \quad n \{ z \hookrightarrow \langle 1,0 \rangle |
+s(b) \hookrightarrow \langle b \cdot r, b \cdot l \rangle \}.
+$$
+我们可以这样定义$e_{ev}$和$e_{od}$：
+\begin{equation*}
+    e_{ev} \triangleq \lambda(n:nat)e_{eo}(n) \cdot l
+\end{equation*}
+\begin{equation*}
+    e_{od} \triangleq \lambda(n:nat)e_{eo}(n) \cdot r.
+\end{equation*}
+
+
+\section{注记}
+\noindent{积类型是结构化数据中最为基础的形式。
+所有的语言都有某种形式的积类型，但是通常以一种与其他可分离的概念相结合的形式出现。
+常见的积类型表现形式为：(1) 带有“多个参数”或“多个结果”的函数；(2) 以相互作用的递归函数元组表示的“对象”；
+(3) “结构体”——组成元素可变的元组。
+有很多有限积类型相关的论文，包括积类型的特例——记录类型。皮尔斯(2002)对记录类型及其子类型属性提供了详细说明（请参见第24章）。
+艾伦等人(2006)分析了依赖型理论框架中的许多关键思想。}
+
+
+\section*{练习}
+\begin{itemize}
+\item[10.1] \textit{数据库模式}可以被认为是有限积类型$\prod_{i\in I}\tau$，
+其中\textit{列}，或\textit{属性}是由索引$I$标记的，它的值由\textit{原子}类型限制，
+例如\texttt{nat}或\texttt{str}。一个模式类型的值被称为改模式的\textit{元组}，或\textit{实例}。
+\textit{数据库}可以被认为是这种元组的一个有限序列，称为数据库的\textit{行}。一个模式类型的值被称为改模式的
+给定一个使用函数类型、积类型和自然数类型的数据库表示，通过将每一行限制到特定的列，来定义\textit{投影(project)}操作，
+即将一个列为$I$的数据库发送给一个列为$I'\subseteq I$的数据库。
+
+\item[10.2] 除了在积类型的惰性和急迫动态中进行选择，我们还可以对积类型的两种形式进行区分，称为\textit{积极}和\textit{消极}。
+消极积类型的静态规则如规则(10.1)，动态规则为惰性策略。积极积类型的静态规则，写作$\tau_1 \otimes \tau_2$，由以下规则给出：
+\begin{subequations}
+    \begin{gather}
+    \frac{\Gamma \vdash e_1 : \tau_1 \qquad \Gamma \vdash e_2 : \tau_2}
+    {\Gamma \vdash fuse(e_1;e_2):\tau_1 \otimes \tau_2} \\
+    \frac{\Gamma \vdash e_0:\tau_1\otimes\tau_2\qquad\Gamma\quad x_1:\tau_1\quad x_2:\tau_2\vdash e:\tau}
+    {\Gamma\vdash split(e_0;x_1,x_2 .e):\tau}
+    \end{gather}
+\end{subequations}
+\texttt{fuse}的动态规则——积极值对的引入形式——是急迫的，本质上是因为消去形式\texttt{split}同时提取出了两个组成元素。
+
+证明：消极积类型可以由使用了unit和函数类型来表达消极配对的惰性语义的积极积类型定义。
+假设我们有一个可以由我们处置的\texttt{let}表达式，该表达式具有按值动态，以便我们可以强制执行积极值对的急迫评估，则积极积类型可以由消极积类型来定义。
+
+\item[10.3] 将练习10.2指定为空积类型，我们就得到了一个积极的和消极的unit类型。
+消极的unit类型由规则10.1给出，它不存在消去形式，有一个引入形式。
+给出积极积类型的动态和静态规则，并证明积极和消极的unit类型是可以不需要其他假设就能互相定义的。
+\end{itemize}
+
