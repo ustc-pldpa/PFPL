@@ -1,0 +1,67 @@
+\section{自引用}
+
+通常允许方法来创建对象，或者是向对象发送消息。但是仅仅使用 26.1 节描述的分派矩阵是无法实现的。简单来说，在分派矩阵的元素中没有提供自我引用的办法。
+为解决这一缺陷，可以修改分派矩阵元素的类型，来描述信息发送和对象创建，具体如下：
+
+$$ \prod_{c \in C} \prod_{d \in D} \forall (t_{\mathtt{obj}} \cdot \tau_{\mathtt{cv}} \rightharpoonup \tau_{\mathtt{mv}} \rightharpoonup \tau^{c} \rightharpoonup \rho_{d})$$
+
+类型变量 $t_{\mathtt{obj}}$ 表示抽象对象类型\footnote[2]{类型 $t_{\mathtt{obj}}$ 不能出现在任何的 $\tau^{c}$ 或者 $\rho_{d}$ 中。当然条件可以放宽；见习题 26.4}。
+类型 $\tau_{\mathtt{cv}}$ 与 $\tau_{\mathtt{mv}}$ 分别为类向量类型和方法向量类型，由抽象对象类型 $t_{\mathtt{obj}}$ 定义，形式如下：
+
+$$ \tau_{\mathtt{cv}} \triangleq \prod_{c \in C}(\tau^{c} \rightharpoonup t_{\mathtt{obj}}) $$
+
+以及
+
+$$ \tau_{\mathtt{mv}} \triangleq \prod_{d \in D}(t_{\mathtt{obj}} \rightharpoonup \rho_{d}) $$
+
+与类 $c$ 相对应的类向量是，从为构造 $c$ 的实例数据构造一个 $t_{\mathtt{obj}}$ 抽象类型值的构造器。
+与方法 $d$ 相对应的方法向量是，当作用到抽象对象类型 $t_{\mathtt{obj}}$ 获得类型为 $\rho_{d}$ 结果的分派器。
+
+按照对分派矩阵的修正，类 $c$ 和方法 $d$ 的行为有以下形式：
+
+$$ \Lambda(t_{\mathtt{obj}})\lambda(cv : \tau_{\mathtt{cv}}) \lambda (mv : \tau_{\mathtt{mv}}) \lambda (u : \tau^{c})e^{c}_{d}$$
+
+参数 $cv$ 与 $mv$ 用来创建新的对象以及向对象发送消息。在表达式 $e^{c}_{d}$ 中，类 $c'$ 的具有实例数据 $e'$ 的对象由 $ cv \cdot c' (e') $ 构造，其中类 $c'$ 可能为类 $c$ 自身；
+这是 $e^{c}_{d}$ 中的一种自我引用的形式。同样地，方法 $d'$ 在 $e^{c}_{d}$ 中被 $ mv \cdot d'(e') $ 调用而作用于 $e'$ 上。方法 $d'$ 同样可能是方法 $d$ 本身；这是在 $e^{c}_{d}$ 中自引用的另一方面。
+
+为了在基于方法的组织中加入自引用，方法向量 $e_{\mathtt{mv}}$ 应该被定义为具有支持自引用的类型 $[\tau/t_{\mathtt{obj}}] {\mathtt{self}}$ ，其中 $\tau$ 与前文一样，是类的实例类型的和 $\sum_{c \in C} \tau^{c}$ 。方法向量的定义如下：
+
+$$ e_{\mathtt{mv}} \triangleq {\mathtt{self}} mv {\mathtt{is}} \langle d \hookrightarrow \lambda(this : \tau) {\mathtt{case}} this \{ c \cdot u \hookrightarrow e_{dm} \cdot c \cdot d[\tau](e_{cv}')(e_{mv}')(u)\}_{c \in C} \rangle_{d \in D} $$
+
+其中方法的行为随着作用对象的类型不同而不同。不管是哪一种组织，核心想法都是：甲对象被分类，乙方法在对象的类别上分派。基于类的与基于方法的组织之间是可以互换的，
+
+$$ e_{\mathtt{cv}}' \triangle \langle c \hookrightarrow \lambda(u : \tau^{c}) \cdot u \rangle_{c \in C} : [\tau / t_{\mathtt{obj}}]\tau_{\mathtt{cv}}$$
+
+以及：
+
+$$ e_{\mathtt{mv}}' \triangle {\mathtt{unroll}}(mv) : [\tau/t_{\mathtt{obj}}]\tau_{\mathtt{mv}}$$
+
+对象的构建由下式定义：
+
+$$ {\mathtt{new}}[c](e) \triangleq c \cdot e : \tau $$
+
+信息发送由下式定义：
+
+$$ e \Leftarrow d \triangleq {\mathtt{unroll}}(e_{\mathtt{mv}}) \cdot d(e) : \rho_{d} $$
+
+为了在基于类的组织中加入自引用，类向量 $e_{\mathtt{cv}}$ 应该被定义为具有类型 $[\rho/t_{\mathtt{obj}}]\tau_{\mathtt{cv}} {\mathtt{self}}$ ，其中对象类型 $\rho$ 与前文一样，是方法结果类型的积 $\prod_{d \in D} \rho_{d}$。类向量定义如下：
+
+$$ e_{\mathtt{cv}} \triangleq {\mathtt{self}} cv {\mathtt{is}} \langle c \hookrightarrow \lambda(this : \tau^{c}) \langle c \hookrightarrow \lambda (u : \tau^{c}) \langle d \hookrightarrow e_{\mathtt{dm}} \cdot c \cdot d[\rho] (e_{\mathtt{cv}}'')(e_{\mathtt{mv}}'')\rangle_{d \in D} \rangle_{c \in C}$$
+
+其中：
+
+$$ e_{\mathtt{cv}}'' \triangleq {\mathtt{unroll}}(cv):[\rho/t_{\mathtt{obj}}]\tau_{\mathtt{cv}} $$
+
+以及：
+
+$$ e_{\mathtt{mv}}'' \triangleq \langle d \hookrightarrow \lambda (this : \rho) this \cdot d  \rangle_{d \in D} : [\rho/t_{\mathtt{obj}}]\tau_{\mathtt{mv}} $$
+
+对象的构建由下式定义：
+
+$$ \mathtt{new}[c](e) \triangleq \mathtt{unroll} (e_{\mathtt{cv}}) \cdot c(e) : \rho $$
+
+信息发送由下式定义：
+
+$$ e \Leftarrow d \triangleq e \cdot d : \rho_{d} $$
+
+这两种组织之间的对称性是很值得注意的，他们反映了和类型与积类型的基本对称。

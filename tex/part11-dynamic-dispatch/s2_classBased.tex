@@ -1,0 +1,52 @@
+\section{基于类的组织}
+
+基于类的组织，起始于对这样的观察：分派矩阵对每个作用在类上的方法可以被“析出”实例数据以获得\textit{类向量}（\textit{class vector}）$ e_{\mathtt{cv}} $，它的类型如下：
+
+$$ \tau_{\mathtt{cv}} \triangleq \prod_{c \in C}(\tau^{c} \rightharpoonup (\prod_{d \in D} \rho_{d})) $$
+
+每个类向量包含一个\textit{构造器}（\textit{constructor}），它能确定每个作用在给定实例数据的方法的结果类型。
+
+一个类型为 $ \rho = \prod_{d \in D} \rho_{d} $ 的对象包含方法的结果类型之积。比如，在飞机坐标点的例子里，$ \rho $ 具有积类型：
+
+$$ \langle \mathtt{dist} \hookrightarrow \rho_{\mathtt{dist}}, \mathtt{quad} \hookrightarrow \rho_{\mathtt{quad}} \rangle $$
+
+每个部分表明了作用在实例数据上的方法的结果类型。
+
+信息的发送操作 $e \Leftarrow d $ 其实是投影 $ e \cdot d $。所以在飞机的坐标点的例子中，$e \Leftarrow \mathtt{dist} $ 是投影 $ e \cdot \mathtt{dist} $ ，同理 $ e \Leftarrow \mathtt{quad} $ 为投影 $ e \cdot \mathtt{quad} $。
+
+基于类的组织将把类转化成类向量的实现，以及对于每个类 $c \in C$ 包含具有类型 $\tau^{c} \hookrightarrow \rho $ 的构造器的类型元组 $ \tau_{\mathtt{cv}} $ 相结合。
+类向量由 $ e_{\mathtt{cv}} = \langle c \rightharpoonup e^{c} \rangle_{c \in C} $ 定义，其中对于每个 $c \in C$ 表达式 $ e^{c} $ 为：
+
+$$ \lambda(u : \tau^{\mathtt{cart}})\langle d \rightharpoonup e_{\mathtt{dm}} \cdot c \cdot d(u) \rangle_{d \in D} $$
+
+比如，对于类 $ \mathtt{cart} $ 的构造器函数 $e^{\mathtt{cart}}$ 形式为：
+
+$$ \lambda(u : \tau^{\mathtt{cart}}) \langle \mathtt{dist} \rightharpoonup e_{\mathtt{dm}} \cdot \mathtt{cart} \cdot \mathtt{dist}(u), \mathtt{quad} \rightharpoonup e_{\mathtt{dm}} \cdot \mathtt{cart} \cdot \mathtt{quad}(u) \rangle $$
+
+同理，类 $ \mathtt{pol} $ 的构造器函数 $e^{\mathtt{pol}}$ 为：
+
+$$ \lambda(u : \tau^{\mathtt{pol}}) \langle \mathtt{dist} \rightharpoonup e_{\mathtt{dm}} \cdot {\mathtt{pol}} \cdot \mathtt{dist}(u), \mathtt{quad} \rightharpoonup e_{\mathtt{dm}} \cdot {\mathtt{pol}} \cdot \mathtt{quad}(u) \rangle $$
+
+这样，类向量 $e_{\mathtt{cv}}$ 为具有类型 $ \langle {\mathtt{cart}} \hookrightarrow \tau^{\mathtt{cart}} \rightharpoonup \rho, {\mathtt{pol}} \hookrightarrow \tau^{\mathtt{pol}} \rightharpoonup \rho \rangle$
+
+通过类的构造器作用在实例数据上，得到类的对象：
+
+$$ {\mathtt{new}}[c](e) \triangleq e_{\mathtt{cv}} \cdot c(e) $$
+
+比如，一个笛卡尔坐标系的点可以由 $ {\mathtt{new}}[{\mathtt{cart}}](\langle {\mathtt{x}} \rightharpoonup x_{0}, {\mathtt{y}} \rightharpoonup y_{0} \rangle) $ 获得，它的定义为：
+
+$$ e_{cv} \cdot {\mathtt{cart}}(\langle {\mathtt{x}} \rightharpoonup x_{0}, {\mathtt{y}} \rightharpoonup y_{0}\rangle) $$
+
+同理，极坐标系的点可以由 ${\mathtt{new}}[{\mathtt{pol}}](\langle {\mathtt{r}} \rightharpoonup r_{0}, {\mathtt{th}} \rightharpoonup \theta_{0} \rangle) $ 获得，其定义为：
+
+$$ e_{cv} \cdot {\mathtt{pol}}(\langle {\mathtt{r}} \rightharpoonup r_{0}, {\mathtt{th}} \rightharpoonup \theta_{0}\rangle) $$
+
+对于点的组织的检查很容易，对于每个类 $c$ 和方法 $d$，我们可以提取出：
+
+$$
+\begin{aligned}
+ ({\mathtt{new}[c](e)}) \Leftarrow d & \longmapsto^{*} (e_{cv} \cdot c(e)) \cdot d \\ & \longmapsto^{*} e_{dm} \cdot c \cdot d(e)
+\end{aligned}
+ $$
+
+也就是说，信息发送会唤起给定对象上实例数据上给定方法的行为。
