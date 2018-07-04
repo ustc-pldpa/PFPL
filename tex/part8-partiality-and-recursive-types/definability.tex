@@ -26,8 +26,12 @@
 \gls{primitive recursion}的静态和动态语义可以用这条规则从\textbf{PCF}扩展出来。
 
 一般地，\textbf{PCF}中可定义性的函数是部分的，因为可能会在一些参数上没有定义。
-一个数学上的\gls{partial function}\(\phi: \mathbb{N} \rightharpoonup \mathbb{N}\)在\textbf{PCF}上可定义，当且仅当存在一个表达式\(e_\phi : \mathtt{nat} \rightharpoonup \mathtt{nat}\)满足当且仅当\(e_\phi(m) \equiv \overline{n}: \mathtt{nat}\)时，有\(\phi(m) = n\)。
+一个数学上的\gls{partial function}\(\phi: \mathbb{N} \rightharpoonup \mathbb{N}\)在\textbf{PCF}上可定义，当且仅当存在一个表达式\(e_\phi : \mathtt{nat} \rightharpoonup \mathtt{nat}\)满足当且仅当\(e_\phi(\overline{m}) \equiv \overline{n}: \mathtt{nat}\)时，有\(\phi(m) = n\)。
 举例来说，如果\(\phi\)是一个完全没有定义的函数，那么\(e_\phi\)可以是任何一个在应用时不断循环而永不返回的函数。
+
+区分出那些在\textbf{PCF}中可定义的\gls{partial function}\(\phi\)是十分有益的。
+\gls{partial recursive}函数是在\gls{primitive recursion}的基础上扩展了最小化操作：给定\(\phi(m, n)\)，定义\(\psi(n)\)为最小的\(m \ge 0\)具有对每个\(m' < m\)，\(\phi(m', n)\)有定义且非零，并且\(\phi(m, n) = 0\)；
+如果没有这样的\(m\)，那么\(\psi(n)\)就是未定义的。
 
 \begin{theorem}
 	一个自然数域上的\gls{partial function}\(\phi\)在\textbf{PCF}上是可定义的，当且仅当它是\gls{partial recursive}的（partial recursive）。
