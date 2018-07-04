@@ -26,14 +26,18 @@
 \gls{primitive recursion}的静态和动态语义可以用这条规则从\textbf{PCF}扩展出来。
 
 一般地，\textbf{PCF}中可定义性的函数是部分的，因为可能会在一些参数上没有定义。
-一个数学上的\gls{partial function}\(\phi: \mathbb{N} \rightharpoonup \mathbb{N}\)在\textbf{PCF}上可定义，当且仅当存在一个表达式\(e_\phi : \mathtt{nat} \rightharpoonup \mathtt{nat}\)满足当且仅当\(e_\phi(m) \equiv \bar{n}: \mathtt{nat}\)时，有\(\phi(m) = n\)。
+一个数学上的\gls{partial function}\(\phi: \mathbb{N} \rightharpoonup \mathbb{N}\)在\textbf{PCF}上可定义，当且仅当存在一个表达式\(e_\phi : \mathtt{nat} \rightharpoonup \mathtt{nat}\)满足当且仅当\(e_\phi(m) \equiv \overline{n}: \mathtt{nat}\)时，有\(\phi(m) = n\)。
 举例来说，如果\(\phi\)是一个完全没有定义的函数，那么\(e_\phi\)可以是任何一个在应用时不断循环而永不返回的函数。
 
-\paragraph{定理19.3.} 一个自然数域上的\gls{partial function}\(\phi\)在\textbf{PCF}上是可定义的，当且仅当它是\gls{partial recursive}的（partial recursive）。
-\newline
-证明的框架：最小化函数（minimization）是可以在\textbf{PCF}中定义的，所以它至少能定义\gls{partial recursive}函数。
-反过来的证明就有些单调，我们可以通过哥德尔编码来将表达式表示为自然数来判断\textbf{PCF}中定义的函数是\gls{partial recursive}函数。
-这样，\textbf{PCF}的表达能力不会超过\gls{partial recursive}函数的集合。
+\begin{theorem}
+	一个自然数域上的\gls{partial function}\(\phi\)在\textbf{PCF}上是可定义的，当且仅当它是\gls{partial recursive}的（partial recursive）。
+\end{theorem} 
+
+\begin{proof}
+	最小化函数（minimization）是可以在\textbf{PCF}中定义的，所以它至少能定义\gls{partial recursive}函数。
+	反过来的证明就有些单调，我们可以通过哥德尔编码来将表达式表示为自然数来判断\textbf{PCF}中定义的函数是\gls{partial recursive}函数。
+	这样，\textbf{PCF}的表达能力不会超过\gls{partial recursive}函数的集合。
+\end{proof}
 
 %　这里的脚注是带第二十一章的引用链接的
 Church定律表明\gls{partial recursive}函数和自然数上的有效计算函数（effectively computable function）集合是一致的，后者是用任一种编程语言写出的或可以写出的程序中存在的计算\footnote{Church定律详见第二十一章}。
@@ -41,10 +45,10 @@ Church定律表明\gls{partial recursive}函数和自然数上的有效计算函
 
 \textbf{PCF}上的\gls{universal function}（universal function）\(\phi_{univ}\)是一个自然数上的\gls{partial function}，定义为
 \[
-	\phi_{univ}(\ulcorner  e \urcorner)(m) = n \text{，当且仅当} e(\bar{m}) \equiv \bar{n}: \mathtt{nat}
+	\phi_{univ}(\ulcorner  e \urcorner)(m) = n \text{，当且仅当} e(\overline{m}) \equiv \overline{n}: \mathtt{nat}
 \]
 和\textbf{T}相反，\textbf{PCF}中的\gls{universal function}\(\phi_{univ}\)是部分的，而可能在一些输入上没有定义。
-本质上，将一个\(\mathtt{nat} \rightharpoonup \mathtt{nat}\)类型闭式的代码\(\bar{\ulcorner e \urcorner}\)给到解释器，就会模拟其动态语义并计算出结果，如果有结果的话，就能应用在\(\bar{m}\)上并获得\(\bar{n}\)。
+本质上，将一个\(\mathtt{nat} \rightharpoonup \mathtt{nat}\)类型闭式的代码\(\overline{\ulcorner e \urcorner}\)给到解释器，就会模拟其动态语义并计算出结果，如果有结果的话，就能应用在\(\overline{m}\)上并获得\(\overline{n}\)。
 毕竟这个过程可能并不能终止，\gls{universal function}也不是定义在所有的输入上的。
 
 从Church定律可以看出\gls{universal function}是可以定义在\textbf{PCF}上的。
@@ -54,6 +58,6 @@ Church定律表明\gls{partial recursive}函数和自然数上的有效计算函
 %　这里有第九章第四节的引用链接
 就像在第9.4节中所做的，我们能够推导出这样的等式给\textbf{PCF}
 \[
-	e_\Delta(\bar{\ulcorner e \urcorner}) \equiv \mathtt{s}(e_\Delta(\bar{\ulcorner e \urcorner}))
+	e_\Delta(\overline{\ulcorner e \urcorner}) \equiv \mathtt{s}(e_\Delta(\overline{\ulcorner e \urcorner}))
 \]
 但是现在，不但不能想在\textbf{T}上那样得到\gls{universal function}\(e_{univ}\)不存在的结论，我们还能总结出\(e_{univ}\)会在\(e_Delta\)应用在自己的代码上时发散。
