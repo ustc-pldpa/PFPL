@@ -1,0 +1,130 @@
+\section{动态语义}
+
+\textbf{PCF}的动态语义是由\gls{judgment}\(e\ \mathtt{val}\)和\(e \longmapsto e'\)所定义的，前者表示闭值，后者表示求值的一步。
+
+\gls{judgment}\(e\ \mathtt{val}\)是由如下的规则定义的：
+
+\begin{gather}
+	\frac{}{
+		\mathtt{z}\ \mathtt{val}
+	}
+	\tag{19.2a} \\
+	\frac{
+		[e\ \mathtt{val}]
+	}{
+		\mathtt{s}(e) \mathtt{val}
+	}
+	\tag{19.2b} 
+	\label{equ:bracketed.1} \\
+	\frac{}{
+		\mathtt{lam}\{\tau\}(x.e) \mathtt{val}
+	}
+	\tag{19.2c}
+\end{gather}
+
+规则\ref{equ:bracketed.1}的带中括号的前提表示它在后继表达式是\gls{eager evaluation}（eager evaluation）解释的情况中被包含，但在\gls{lazy evaluation}（lazy evaluation）解释的情况中被忽略。
+% 下一句包括章节引用，原文中有链接
+（见第三十六章关于惰性的详解）
+
+化简\gls{judgment}（transition judgment）\(e \longmapsto e'\)由以下规则定义：
+\begin{gather}
+	\bigg[
+	\frac{
+		e \longmapsto e'
+	}{
+		\mathtt{s}(e) \longmapsto \mathtt{s}(e')
+	}
+	\bigg]
+	\tag{19.3a}
+	\label{equ:bracketed.2} \\
+	\frac{
+		e \longmapsto e'
+	}{
+		\mathtt{ifz}\{e_0;x.e_1\}(e) \longmapsto \mathtt{ifz}\{e_0;x.e_1\}(e')
+	}
+	\tag{19.3b} \\
+	\frac{}{
+		\mathtt{ifz}\{e_0;x.e_1\}(\mathtt{z}) \longmapsto e_0
+	}
+	\tag{19.3c} \\
+	\frac{
+		\mathtt{s}(e)\ \mathtt{val}
+	}{
+		\mathtt{ifz}\{e_0;x.e_1\}(\mathtt{s}(e)) \longmapsto [e/x]e_1
+	}
+	\tag{19.3d} \\
+	\frac{
+		e_1 \longmapsto e_1'
+	}{
+		\mathtt{ap}(e_1;e_2) \longmapsto \mathtt{ap}(e_1';e_2)
+	}
+	\tag{19.3e} \\
+	\bigg[
+	\frac{
+		e_1\ \mathtt{val} \quad e_2 \longmapsto e_2'
+	}{
+		\mathtt{ap}(e_1;e_2) \longmapsto \mathtt{ap}(e_1;e_2')
+	}
+	\bigg]
+	\tag{19.3f} 
+	\label{equ:bracketed.3} \\
+	\frac{
+		[e_2\ \mathtt{val}]
+	}{
+		\mathtt{ap}(\mathtt{lam}\{\tau\}(x.e);e_2) \longmapsto [e_2/x]e
+	}
+	\tag{19.3g} 
+	\label{equ:bracketed.4} \\
+	\frac{}{
+		\mathtt{fix}\{\tau\}(x.e) \longmapsto [\mathtt{fix}\{\tau\}(x.e)/x]e
+	}
+	\tag{19.3h}
+	\label{equ:fix.dynamic}
+\end{gather}
+带中括号的规则\ref{equ:bracketed.2}在后继表达式是\gls{eager evaluation}的情况中被包含，否则应该被忽略。
+带中括号的规则\ref{equ:bracketed.3}以及规则\ref{equ:bracketed.4}里带中括号的前提在函数应用的\gls{call-by-value}（call-by-value）时被包含，在\gls{call-by-name}（call-by-name）时被忽略。
+规则\ref{equ:fix.dynamic}通过将递归表达式体内的变量\(x\)替换为自身实现了自参照，这个过程称作递归的展开（unwinding）。
+
+\begin{lemma}[安全性]
+\hfil
+
+1. 如果\(e: \tau\)并且\(e \longmapsto e'\)，那么\(e': \tau\)
+
+2. 如果\(e: \tau\)，要么有\(e \mathtt{val}\),要么存在\(e'\)满足\(e \longmapsto e'\)
+\end{lemma}
+
+% 留意一下这里，感觉我按照原文翻译得不太通顺
+\begin{proof}
+	保留性通过在化简\gls{judgment}推导上的归纳来证明。
+	考虑规则\ref{equ:fix.dynamic}，并假设\(\mathtt{fix}\{\tau\}(x.e): \tau\)。
+	通过倒转和替换，我们就能得到想要的\([\mathtt{fix}\{\tau\}(x.e)/x]: \tau\)。
+	同时，通过类型\gls{judgment}推导上的归纳来继续过程上的证明。
+	例如规则\ref{equ:fix.static}的结果可以延续，因为我们可以通过递归的展开来进行下去。
+\end{proof}
+
+
+我们很容易可以发现如果\(e\ \mathtt{val}\)，那么\(e\)是不可规约的因为没有\(e'\)使得\(e \longmapsto e'\)。
+安全性定理则反过来说明一个不可规约的表达式是一个值，因为是闭式且\gls{well-typed}。
+
+\gls{call-by-name}型\textbf{PCF}中定义上的等价用\(\Gamma \vdash e_1 \equiv e_2\)来表示，它是最强的全等一致性，包含以下的公理：
+
+\begin{gather}
+	\frac{}{
+		\Gamma \vdash \mathtt{ifz}\{e_0; x.e_1\}(\mathtt{z}) \equiv e_0: \tau
+	}
+	\tag{19.4a} \\
+	\frac{}{
+		\Gamma \vdash \mathtt{ifz}\{e_0; x.e_1\}(\mathtt{s}(e)) \equiv [e/x]e_1: \tau
+	}
+	\tag{19.4b} \\
+	\frac{}{
+		\Gamma \vdash \mathtt{fix}\{\tau\}(x.e) \equiv [\mathtt{fix}\{\tau\}(x.e)/x]e: \tau
+	}
+	\tag{19.4c} \\
+	\frac{}{
+		\Gamma \vdash \mathtt{ap}(\mathtt{lam}\{\tau\}(x.e_2); e_1) \equiv [e_1/x]e_2: \tau
+	}
+	\tag{19.4d}
+\end{gather}
+
+这些规则满足任何\(\mathtt{nat}\)类型的闭式值的计算：如果\(e: \mathtt{nat}\)，那么当且仅当\(e \longmapsto *\bar{n}\)时，有\(e \equiv \bar{n}: \tau\)。
