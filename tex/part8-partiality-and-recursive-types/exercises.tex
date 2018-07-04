@@ -17,8 +17,8 @@
 	假设我们想要定义\gls{lazy evaluation}型\textbf{PCF}的平行或函数：两个参数中有一个是\(\mathtt{z}\)就返回\(\mathtt{z}\)，否则返回\(\mathtt{s}(\mathtt{z})\)。
 	即我们想要找到表达式\(e\)满足以下的条件：
 	\begin{align*}
-		e(e_1)(e_2) & \longmapsto * \mathtt{z}\ \mathtt{if}\ e_1 \longmapsto * \mathtt{z}
-		e(e_1)(e_2) & \longmapsto * \mathtt{z}\ \mathtt{if}\ e_2 \longmapsto * \mathtt{z}
+		e(e_1)(e_2) & \longmapsto * \mathtt{z}\ \mathtt{if}\ e_1 \longmapsto * \mathtt{z} \\
+		e(e_1)(e_2) & \longmapsto * \mathtt{z}\ \mathtt{if}\ e_2 \longmapsto * \mathtt{z} \\
 		e(e_1)(e_2) & \longmapsto * \mathtt{s}(\mathtt{z})\ \mathtt{otherwise}
 	\end{align*}
 	因此，\(e\)的对两个参数的定义是一个\gls{total function}，即便可能对其中一个参数发散。
