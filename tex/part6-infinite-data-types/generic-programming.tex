@@ -35,9 +35,9 @@ $\tau_1\times\tau_2$组成。更确切的说，断言$t.\tau\ \texttt{poly}$是�
 	\begin{gather}
 	\overline{t.t\ \texttt{poly}} \newline\\
 	\overline{t.\texttt{unit}\ \texttt{poly}} \\
-	\frac{t.\tau_1\ \texttt{poly}\ \ t.\tau_2\ \texttt{poly}}{t.\tau_1\times t.\tau_2\ \texttt{poly}} \\
+	\frac{t.\tau_1\ \texttt{poly}\ \ t.\tau_2\ \texttt{poly}}{t.\tau_1\times \tau_2\ \texttt{poly}} \\
 	\overline{t.\texttt{void}\ \texttt{poly}} \\
-	\frac{t.\tau_1\ \texttt{poly}\ \ t.\tau_2\ \texttt{poly}}{t.\tau_1 + t.\tau_2\ \texttt{poly}}
+	\frac{t.\tau_1\ \texttt{poly}\ \ t.\tau_2\ \texttt{poly}}{t.\tau_1 + \tau_2\ \texttt{poly}}
 	\end{gather}
 \end{subequations}
 练习 14.1 要求证明在施加代换时，多项式类型运算符保持封闭性。
@@ -49,8 +49,8 @@ $\tau_1\times\tau_2$组成。更确切的说，断言$t.\tau\ \texttt{poly}$是�
 不能从类型操作符的实例中恢复出原来的类型操作符。比如，当$\rho$是\texttt{nat} 时，上面的实例就变成了
 $\texttt{nat}\times(\texttt{nat} +\texttt{nat})$。除非有类型运算符给出的模式，我们无从得知哪个\texttt{nat} 是指定点。
 
-多项式类型的\textit{泛型扩展}（\textit{generice extension}）表达式拥有如下语法形式：
-$$\texttt{Exp}\ e\ ::=\ \texttt{map}\{t.\tau\}(x.e')(e)\ \text{generic extension.}$$
+多项式类型的\textit{泛型扩展}（\textit{generice extension}）是有如下语法的表达式：
+$$\texttt{Exp}\ e\ ::=\ \texttt{map}\{t.\tau\}(x.e')(e)\ \texttt{map}\{t.\tau\}(x.e')(e)\ \text{generic extension.}$$
 它的静态语义如下：
 \begin{equation} \label{eq:generic-extension-statics}
 \frac{t.\tau\ \texttt{poly}\ \ \Gamma,x:\rho\vdash e':\rho'\ \ \Gamma\vdash e:[\rho/t]\tau}
@@ -71,8 +71,8 @@ $[\rho/t]\tau$到$[\rho'/t]\tau$的映射。后一个映射把出现在对应到
 			  \langle\texttt{map}\{t.\tau_1\}(x.e')(e\cdot \texttt{l}),\texttt{map}\{t.\tau_2\}(x.e')(e\cdot \texttt{r})\rangle} \label{eq:generic-extension-dynamics-c}\\
 	\overline{\texttt{map}\{t.\texttt{void}\}(x.e')(e)\mapsto\texttt{abort}(e)} \label{eq:generic-extension-dynamics-d}\\
 	\overline{\texttt{map}\{t.\tau_1+\tau_2\}(x.e')(e)\mapsto
-	          \texttt{case} e\{\texttt{l}\cdot x_1\hookrightarrow\texttt{l}\cdot\texttt{map}\{t.\tau_1\}(x.e')(x_1)\}|
-               \texttt{r}\cdot x_2\hookrightarrow\texttt{r}\cdot\texttt{map}\{t.\tau_2\}(x.e')(e)} \label{eq:generic-extension-dynamics-e}
+	          \texttt{case}\ e\ \{\texttt{l}\cdot x_1\hookrightarrow\texttt{l}\cdot\texttt{map}\{t.\tau_1\}(x.e')(x_1)\}|
+               \texttt{r}\cdot x_2\hookrightarrow\texttt{r}\cdot\texttt{map}\{t.\tau_2\}(x.e')(x_2)} \label{eq:generic-extension-dynamics-e}
 	\end{gather}
 \end{subequations}
 根据运算符$t.t$，规则\ref{eq:generic-extension-dynamics-a}将变换$x.e'$直接作用到$e$上。
@@ -94,14 +94,14 @@ $$\texttt{map}\{t.\tau\}(x.e)(\texttt{r}\cdot\langle\texttt{true},n\rangle)\maps
 \end{theorem}
 
 \begin{proof}
-	根据规则\ref{eq:generic-extension-statics}的反推，我们有
+	根据规则\ref{eq:generic-extension-statics}的反演，我们有
 	\begin{enumerate}
 		\item $t\ \texttt{type}\vdash\tau\ \texttt{type}$;
 		\item 存在$\rho$和$\rho'$使得$x:\rho\vdash e':\rho'$;
 		\item $e:[\rho/t]\tau$;
 		\item $\tau'$是$[\rho'/t]\tau$
 	\end{enumerate}
-接下来根据规则\ref{eq:generic-extension-dynamics}进行证明。比如，考虑规则\ref{eq:generic-extension-dynamics-c}，
+接下来根据规则\ref{eq:generic-extension-dynamics}的各种情况进行证明。比如，考虑规则\ref{eq:generic-extension-dynamics-c}，
 我们有$\texttt{map}\{t.\tau_1\}(x.e')(e\cdot\texttt{l}):[\rho'/t]\tau_1$和
 $\texttt{map}\{t.\tau_2\}(x.e')(e\cdot\texttt{l}):[\rho'/t]\tau_2$，
 很容易可以得到
@@ -112,13 +112,13 @@ $$\langle\texttt{map}\{t.\tau_1\}(x.e')(e\cdot \texttt{l}),\texttt{map}\{t.\tau_
 \section{阳性类型运算符}
 
 \textit{阳性}（\textit{positive}）类型运算符扩展了多项式类型，它允许受限形式的函数类型。
-具体来说，当且仅当（1）$t$并没有出现在$\tau_1$中，且（2）$t.\tau_2$是一个阳性类型运算符时，
+具体来说，当（1）$t$并没有出现在$\tau_1$中，且（2）$t.\tau_2$是一个阳性类型运算符时，
 $t.\tau_1\rightarrow\tau_2$是一个阳性类型运算符。通常来说，函数类型定义域里出现类型变量$t$被称为
 \textit{阴性出现}（\textit{negative occurrences}），而值域或者积类型与和类型中出现了$t$被称为
 \textit{阳性出现}（\textit{positive occurrences}）。阳性类型运算符中只允许$t$的阳性出现。与多项式类型运算符一样，
 阳性类型运算符在代换下也是封闭的。
 
-我们定义一个断言$t.\tau\ \texttt{pos}$。它通过下面的规则来判断一个抽象子$t.\tau$是否是阳性类型运算符：
+我们定义一个断言$t.\tau\ \texttt{pos}$。它指出满足下面的规则的抽象子$t.\tau$是阳性类型运算符：
 \begin{subequations}\label{eq:positive-type-statics}
 	\begin{gather}
 	\overline{t.t\ \texttt{pos}} \label{eq:positive-type-statics-a} \\
@@ -129,22 +129,22 @@ $t.\tau_1\rightarrow\tau_2$是一个阳性类型运算符。通常来说，函�
 	\frac{\tau_1\ \texttt{type}\ \ t.\tau_2\ \texttt{pos}}{t.\tau_1\rightarrow\tau_2\ \texttt{pos}}\label{eq:positive-type-statics-f}
 	\end{gather}
 \end{subequations}
-在\ref{eq:positive-type-statics-f}中，通过要求定义域在不考虑到类型变量$t$时也是良型，我们把类型变量$t$从定义域中排除了。
+在\ref{eq:positive-type-statics-f}中，通过要求定义域在不考虑到类型变量$t$时也是良式的，我们把类型变量$t$从定义域中排除了。
 
 阳性类型的泛型扩展的定义与多项式类型很相似，它在函数类型上的动态语义如下：
 \begin{equation}\label{eq:positive-type-dynamics}
 \overline{\texttt{map}^+\{t.\tau_1\rightarrow\tau_2\}(x.e')(e)\mapsto
 \lambda(x_1:\tau_1)\texttt{map}^+\{t.\tau_2\}(x.e')(e(x_1))}
 \end{equation}
-当原式类型是$\tau_1\rightarrow[\rho/t]\tau_2$时，因为$t$不被允许出现在定义域中，结果的类型是
-$\tau_1\rightarrow[\rho'/t]\tau_2$。很容易可以验证非扩张性在正类型的泛型扩展上也成立。
+当$e$的类型是$\tau_1\rightarrow[\rho/t]\tau_2$时，因为$t$不被允许出现在定义域中，结果的类型是
+$\tau_1\rightarrow[\rho'/t]\tau_2$。很容易可以验证保留性在阳性类型的泛型扩展上也成立。
 
 让我们思考一下，为什么让泛型扩张作用在任意类型运算符上而没有对位置的限制是错误的。考虑未对$t$作出限制的类型运算符
 $t.\tau_1\rightarrow\tau_2$，假设$x:\rho\vdash e':\rho'$。当$e$的类型是$[\rho/t]\tau_1\rightarrow[\rho/t]\tau_2$时
 泛型扩展$\texttt{map} \{t.\tau_1\rightarrow\tau_2 \} (x.e')(e)$的类型是$[\rho'/t]\tau_1\rightarrow[\rho'/t]\tau_2$。
-这个扩展会产生如下形式的函数：$$\lambda(x_1:[\rho'/t]\tau_1)\dots(e(\dots(x1)))$$在这个函数中，我们把$e$施加在
-$x_1$转换后的结果上，然后再转换这个结果。可以归纳得到，问题在于我们知道$\texttt{map}\{t.\tau_1\}(x.e')(-)$能把类型为
-$[\rho/t]\tau_1$的值转换成类型为$[\rho'/t]\tau_1$的值，但我们需要反过来让$x_1$有合适的类型来接受$e$
+这个扩展会产生如下形式的函数：$$\lambda(x_1:[\rho'/t]\tau_1)\dots(e(\dots(x_1)))$$在这个函数中，我们把$e$施加在
+$x_1$转换后的结果上，然后再转换这个结果。问题在于，虽然我们由归纳得到$\texttt{map}\{t.\tau_1\}(x.e')(-)$能把类型为
+$[\rho/t]\tau_1$的值转换成类型为$[\rho'/t]\tau_1$的值，但我们需要反过来让$x_1$有适合做$e$的参数的类型。
 
 \section{备注}
 
@@ -156,7 +156,7 @@ $[\rho/t]\tau_1$的值转换成类型为$[\rho'/t]\tau_1$的值，但我们需�
 \begin{enumerate}
 	\item 证明当$t.\tau\ \texttt{poly}$，且$t'.\tau'\ \texttt{poly}$，那么$t.[\tau/t']\tau'\ \texttt{poly}$。
 	\item 证明常量类型运算符的泛型扩展本质是将返回封闭值自身的恒等函数。更确切的说，证明对于任意
-	类型为$\tau$的值$e$和任意$e'$，表达式$$\texttt{map}\{x.\tau\}(x.e')(e)$$的结果始终是$e$。
+	类型为$\tau$的值$e$和任意$e'$，表达式$$\texttt{map}\{\text{x}.\tau\}(x.e')(e)$$的结果始终是$e$。
 	简化起见，假设积类型与和类型有贪婪的动态语义，并且只考虑多项式类型运算符。当我们把这个结论
 	延伸到阳性类型运算符时出现了什么复杂性？
 	\item 考虑练习 10.1和11.3，数据库模式可以表示为由模式属性集合作为下标的有限积类型，带有这种
