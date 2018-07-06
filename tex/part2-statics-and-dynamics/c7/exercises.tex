@@ -1,0 +1,22 @@
+\section{习题}
+
+7.1. 试说明求值是确定的:  如果 $e\Downarrow v_{1}$ 且 $e\Downarrow v_{2}$, 那么 $v_{1} =v_{2}.$%改为求值是确定的
+7.2.  完成引理7.3 的证明 %换行
+
+7.3.  完成引理7.4 的证明.  然后说明：如果 $e\mapsto^{*}e'$ 且 $e'$ val, 那么 $e\Downarrow e'.$
+
+7.4. 在第5 章中，使用 $e$ ?? 表示 $e$ 引起一个检查(或未检查)的错误，用检测错误增强分析动
+态。关于类型安全的证明还有何缺陷?你能想出更好的选择吗? 
+
+7.5. 考虑下述形式的一般假设判断
+$$
+\chi_{1\Downarrow v_{1}},\text{ . }..,\ x_{n}\Downarrow v_{n}\vdash e\Downarrow v
+$$%这里应该是x，v1不是下标
+有 $v_{1}$ val, . . ., $v_{n}$ val, 和 $v$ val. 此假设记作 $\Delta$, 被称为环境分析；它们提供了$e$中的自由变量的值。此判断假设$\Delta\vdash e\Downarrow v$ 被称为求值的环境。%被称为求值的环境，
+给出一个求值的环境的归纳定义，不使用任何替代。特别地，应该包含下面的规则来定义自由变  %包含下面的规则来
+量的取值：
+$$
+\overline{\Delta,x\Downarrow v\vdash x\Downarrow v}
+$$
+
+试证：$x_{1} \Downarrow v_{1}$, . . ., $x_{n} \Downarrow v_{n} \vdash e \Downarrow v$ iff $[v_{1},\ .\ .\ .,\ v_{n}/x_{1},\ .\ .\ .,\ x_{n}]e \Downarrow v$ （使用逐步分析）%逐步求值

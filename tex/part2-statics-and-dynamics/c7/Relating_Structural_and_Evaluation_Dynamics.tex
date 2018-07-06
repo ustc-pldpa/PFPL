@@ -1,0 +1,31 @@
+\section{7.2 结构化和求值动态语义}%结构化和求值动态语义，下同
+
+对于E，我们已经给出了两种不同形式的动态，自然会提出它们是否等价这个问题，但我们
+首先要考虑的是我们所谓等价的具体意义。结构化动态语义描述一个逐步执行的过程，而求值动态语义
+则忽略中间状态，只关注初始状态和最终状态。正确的对应关系是结构化动态语义的完整执行序列和求值动态语义的求值断言。
+%结构化动态语义的完整执行序列和求值动态语义的求值断言
+定理 7.2. {\it 对所有闭式} $e$ {\it 和值} $v, e\mapsto^{*}v$ 当且仅当 $e\Downarrow v.$%iff为当且仅当
+
+我们应如何证明它？下面将分别考虑所有方面，首先是最简单的一个%分别考虑
+
+引理 7.3. {\it 如果} $e\Downarrow v$, {\it 那么} $e\mapsto^{*}v.$
+
+{\it 证明}. 通过归纳分析判断的定义。比如，假设plus $(e_{1;}\cdot e_{2}) \Downarrow \mathrm{n}\mathrm{u}\mathrm{m}[n]$ 是分析加法的规则。归纳可知 $e_{1} \mapsto^{*}$
+
+$\mathrm{n}\mathrm{u}\mathrm{m}[n_{1}]$ 和 $e_{2}\mapsto^{*}\mathrm{n}\mathrm{u}\mathrm{m}[n_{2}]$. 理由如下:
+%没有居中对齐
+plus $(e_{1};e_{2}) \mapsto^{*}$ plus(num $[n_{1}]_{;}e_{2}$)
+
+$\mapsto^{*}$ plus(num $[n_{1}]_{;}$. num $[n_{2}]$)
+
+$\mapsto$ num $[n_{1}+n_{2}]$
+
+由此有plus $(e_{1};\cdot e_{2}) \mapsto^{*}\mathrm{n}\mathrm{u}\mathrm{m}[n_{1}+n_{2}]$, 其他情况处理相同. $\square $
+
+对于逆向，回顾第5 章中多步分析和完整分析的定义。因为$v$ val时 $v\Downarrow v$ ,结果表明，在逆向分析下分析是封闭的。
+
+引理 7.4. {\it 如果} $e\mapsto e'$ {\it 且} $e'\Downarrow v$, {\it 那么} $e\Downarrow v.$
+
+{\it 证明}. 通过归纳转化判断的定义。比如，假设在$e_{1} \mapsto$ e\'{i}时 plus $(e_{1};\cdot e_{2}) \mapsto$plus(e\'{i}; $e_{2}$)，假设进一步有plus(e\'{i};$e_{2}$) $\Downarrow v$, 故有 e\'{i} $\Downarrow \mathrm{n}\mathrm{u}\mathrm{m}[n_{1}]$, 且$e_{2}\Downarrow \mathrm{n}\mathrm{u}\mathrm{m}[n_{2}]$, 且 $n_{1}+n_{2}=n$, 且 $v$ 是$\mathrm{n}\mathrm{u}\mathrm{m}[n]$. 通过归纳 $e_{1}\Downarrow \mathrm{n}\mathrm{u}\mathrm{m}[n_{1}]$, 有 plus $(e_{1};\cdot e_{2})\Downarrow$
+$\mathrm{n}\mathrm{u}\mathrm{m}[n]$, 满足要求. $\square $
+%请检查e_{1},e_{2}

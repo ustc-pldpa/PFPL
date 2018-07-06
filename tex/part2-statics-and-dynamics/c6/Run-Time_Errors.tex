@@ -1,0 +1,57 @@
+\section{6.3 运行时错误}
+
+S假设我们想用一个除0 无意义的商运算扩展 $\mathrm{E}$， 商的自然类型规则由以下规则给出：
+$$
+\frac{e_{1}:\mathrm{n}\mathrm{u}\mathrm{m}e_{2}:\mathrm{n}\mathrm{u}\mathrm{m}}{\mathrm{d}\mathrm{i}\mathrm{v}(e_{1};e_{2}):\mathrm{n}\mathrm{u}\mathrm{m}}\ .
+$$
+但表达式 $\mathrm{d}\mathrm{i}\mathrm{v}$(num[3]; num $[0]$) 是良类型的，却中止了！有两个选项去纠正这个错误：
+
+1. 增强类型系统，使任何良类型程序都不能除以0.
+
+2. 添加动态检查，将以零为除数的除法作为评估结果的一个错误信号.
+
+两个选择都是原则上可行的，但最常见的方法是第二种。第一条要求类型检查器证明表达式
+
+为非零，然后才允许在一个商的分母中使用它。要做到这点必须将很多程序划为弱定义的。
+
+我们不能静态地预测表达式在计算时是否为非零，因此第二种方法在实际中最常用。
+
+总体思路是区分 {\it 检测错误} 和 {\it 非检测错误}。一个非检测错误是被类型系统排除的错误。不采
+
+取运行时检测以确保不会发生这种错误，因为类型系统排除了发生这种错误的可能性。例如，
+
+动态不需要检查，当执行加法时，它的两个参数实际上是数字，而不是字符串，因为类型系
+
+统的保证。另一方面，商的动态必须检查零除数，因为类型系统没有排除这种可能性。
+
+对检测错误进行建模的一种方法是给出命题%这里应该是断言e err
+
+$e$ 的归纳定义，指出表达式 $e$ 可能检测出的运行时错误，如除以0。以下是一些具有代表性的规则，将在此判断的完全归纳定义中出现：
+\begin{center}%这里应该使用subequations自动编号，下同
+$\displaystyle \frac{e_{1}\mathrm{v}\mathrm{a}1}{\mathrm{d}\mathrm{i}\mathrm{v}(e_{1};\mathrm{n}\mathrm{u}\mathrm{m}[0])\mathrm{e}\mathrm{r}\mathrm{r}}$   (6.1a)
+
+$\displaystyle \frac{e_{1}\mathrm{e}\mathrm{r}\mathrm{r}}{\mathrm{d}\mathrm{i}\mathrm{v}(e_{1};e_{2})\mathrm{e}\mathrm{r}\mathrm{r}}$   (6.1b)
+
+$\displaystyle \frac{e_{1}\mathrm{v}\mathrm{a}1e_{2}\mathrm{e}\mathrm{r}\mathrm{r}}{\mathrm{d}\mathrm{i}\mathrm{v}(e_{1};e_{2})\mathrm{e}\mathrm{r}\mathrm{r}}$   (6.1c)
+\end{center}
+规则(6.1a)表示除零错误。其他规则向上传播这个错误:如果子表达式检测出错误，那么整个表达式同样是错误的%如果子表达式检测出错误，那么整个表达式同样是错误的
+
+一旦有了错误判断，我们还可以考虑一个表达式错误。它强制引入一个错误，使用以下静
+态和动态语义: 
+
+(6.2a)
+%少了上面的一横
+$\Gamma\vdash$ error : $\tau$
+
+(6.2b)
+$$
+\overline{\mathrm{e}\mathrm{r}\mathrm{r}\mathrm{o}\mathrm{r}\mathrm{e}\mathrm{r}\mathrm{r}}
+$$
+保留定理不受检测错误的影响。但进展性的声明与证明需要修改。
+
+
+
+定理 6.5 (考虑错误的进展性). {\it 如果} $e$ : $\tau$, {\it 那么或者} $e$ {\it err, 或者} $e \iota/\mathrm{a}/$, {\it 或存在} $e'$ {\it 使}$e\mapsto e'.$
+%e val
+{\it 证明}. 通过类型归纳证明，与前面给出的证明类似，只是在每一点的证明上需要考虑三个情况。 $\square $
+
