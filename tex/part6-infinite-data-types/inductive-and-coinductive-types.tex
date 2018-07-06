@@ -1,0 +1,307 @@
+\chapter{归纳类型与共归纳类型}
+
+\textit{归纳}（\textit{inductive}）类型与\textit{共归纳}（\textit{coinductive}）类型是两种重要的递归类型。
+归纳类型对应到类型方程的\textit{最小}或\textit{初始}解，而共归纳类型对应到它的\textit{最大}或\textit{最终}解。
+直觉上来看，归纳类型的元素是对它的介入形式进行有限的组合得到的。于是，如果我们指定了函数在每个归纳类型的介入形式上
+的行为，那么就相当于为所有这个类型的值定义了函数的行为。这样的函数称为\textit{递归子}（\textit{recursor}）或是
+\textit{向下态射}（\textit{catamorphism}）。与之对偶，共归纳类型的元素是能正确应用有限次除去规则的值。如果我们
+指定了指定了每个元素应对除去规则时的行为，那么我们也就定义了这个元素的值。这样的元素称为\textit{产生子}（\textit{generator}）
+或者\textit{向上态射}（\textit{anamorphism}）。
+
+\section{样例}\label{section-15.1}
+
+关于归纳类型，最重要的一个例子就是第九章中定义的自然数类型。类型\texttt{nat} 是包含了\texttt{z}且在$\texttt{s}(-)$下封闭
+的最小类型。这个最小条件可以通过迭代子$\texttt{iter} \{\texttt{z}\hookrightarrow e_0|\texttt{s}(x)\hookrightarrow e_1\}$
+来表示。给定0对对应的值，和一个从某个数对应的值到那个数后继对应的值的转换，这个迭代器能把自然数转换到类型为$\tau$的值。
+这个操作是良好定义的，因为不存在其它的自然数。
+
+知道了类型\texttt{nat} 的推导是归纳类型的特殊例子后，我们可以将0和它的后继结合到一个介入形式中去。
+相对应地，可以将迭代子的基础和归纳步骤结合到一起。下面的规则定义了再形成步骤的静态语义：
+\begin{subequations}
+	\begin{gather}
+	\frac{\Gamma\vdash e:\texttt{unit} +\texttt{nat}}{\Gamma\vdash\texttt{fold}_\texttt{nat}(e):\texttt{nat}} \\
+	\frac{\Gamma,x:\texttt{unit} + \tau\vdash e_1:\tau\ \ \ \ \Gamma\vdash e_2:\texttt{nat}}{\Gamma\vdash\texttt{rec}_\texttt{nat}(x.e_1;e_2):\tau}
+	\end{gather}
+\end{subequations}
+表达式$\texttt{fold}_\texttt{nat}(e)$是类型\texttt{nat} 唯一的介入规则。根据这个规则，表达式\texttt{z}可以表示成
+$\texttt{fold}_\texttt{nat}(\texttt{l}\cdot\langle\rangle)$，而$\texttt{s}(e)$可以表示成
+$\texttt{fold}_\texttt{nat}(\texttt{r}\cdot e)$。递归子$\texttt{rec}_\texttt{nat}(x.e_1;e_2)$将基础和归纳步骤
+组合成了一个计算过程。它接受一个抽象子$x.e_1$作为参数，在给定一个类型为$\texttt{unit} +\tau$的值后会产生
+一个类型为$\tau$的值。直觉上来看，如果$x$被替换成了$\texttt{l}\cdot\langle\rangle$，那么$e_1$
+计算了递归最基本的情况，而当$x$被替换成了$\texttt{r}\cdot e$，那么$e_1$从结果递归调用的结果$e$中计算
+了归纳步骤。
+
+自然数结合后的表示的动态语义由下列规则给出：
+\begin{subequations}\label{eq:inductive-nat}
+	\begin{gather}
+	\overline{\texttt{fold}_\texttt{nat}(e)\texttt{val}} \label{eq:inductive-nat-a}\\
+	\frac{e_2\mapsto e'_2}{\texttt{rec}_\texttt{nat}(x.e_1;e_2)\mapsto\texttt{rec}_\texttt{nat}(x.e_1;e_2')} \label{eq:inductive-nat-b}\\
+	\overline{\texttt{rec}_\texttt{nat}(x.e_1;\texttt{fold}_\texttt{nat}(e_2)) \mapsto
+		[\texttt{map}\{t.\texttt{unit} +t\}(y.\texttt{rec}_\texttt{nat}(x.e_1;y))(e_2)/x]e_1}\label{eq:inductive-nat-c}
+	\end{gather}
+\end{subequations}
+规则\ref{eq:inductive-nat-c}使用了（多项式）泛型扩展来施加递归子到可能存在的前驱自然数上。如果我们按照
+泛型扩展的定义来展开它，我们会得到：
+$$\overline{\texttt{rec}_\texttt{nat}(x.e_1;\texttt{fold}_\texttt{nat}(e_2)) \mapsto
+[\texttt{case}\ e_2\ \{\texttt{l}\cdot x\hookrightarrow\texttt{l}\cdot\langle\rangle|
+\texttt{r}\cdot y\hookrightarrow\texttt{r}\cdot\texttt{rec}_\texttt{nat}(x.e_1;y)\}/x]e_1}$$
+练习15.2要求根据这里给出的递归子的定义推导出迭代子的定义
+
+一个直观的共归纳类型的例子是自然数的\textit{流}（\textit{stream}）的类型。
+流是一个是一个无限的自然数序列，其中每个元素要在所有之前的元素都被计算出来后才会被计算。
+也就是说，流中元素的计算是顺序依赖的，每个元素都会影响下一个元素的计算。在这个意义上，
+流的介入形式和自然数的除去形式是对偶的。
+
+现有一个流根据下面的除去规则来定义它的行为：$\texttt{hd}(e)$返回流的下一个元素，或者说是头元素。而
+$\texttt{tl}(e)$返回流的尾元素，即去掉头元素后的流。流通过\textit{产生子}（递归子的对偶）引入，
+根据当前流的状态定义了流的头和尾。流的静态语义如下：
+\begin{subequations} \label{eq:coinductive-stream-statics}
+	\begin{gather}
+	\frac{\Gamma\vdash e:\texttt{stream}}{\Gamma\vdash\texttt{hd}(e):\texttt{nat}} \label{eq:coinductive-stream-statics-a}\\
+	\frac{\Gamma\vdash e:\texttt{stream}}{\Gamma\vdash\texttt{tl}(e):\texttt{stream}} \label{eq:coinductive-stream-statics-b}\\
+	\frac{\Gamma\vdash e:\tau\ \ \ \Gamma,x:\tau\vdash e_1:\texttt{nat}\ \ \ \Gamma,x:\tau\vdash e_2:\tau}
+	{\Gamma\vdash\texttt{strgen}\ x\ \texttt{is}\ e\ \texttt{in} <\texttt{hd}\hookrightarrow e_1,
+		\texttt{tl}\hookrightarrow e_2>:\texttt{stream}}\label{eq:coinductive-stream-statics-c}
+	\end{gather}
+\end{subequations}
+在规则\ref{eq:coinductive-stream-statics-c}中，类型为$\tau$的表达式$e$以及由$e_1$和$e_2$决定的流的头和尾表示流当前的状态。
+（产生子的表示是为了强调每个流都有一个头和一个尾）
+
+流的动态语义如下：
+\begin{subequations} \label{eq:coinductive-stream-dynamics}
+	\begin{gather}
+	\overline{\texttt{strgen}\ x\ \texttt{is}\ e\ \texttt{in} <\texttt{hd}\hookrightarrow e_1,
+	\texttt{tl}\hookrightarrow e_2>\ \texttt{val}} \label{eq:coinductive-stream-dynamics-a} \\
+	\frac{e\mapsto e'}{\texttt{hd}(e)\mapsto \texttt{hd}(e')} \label{eq:coinductive-stream-dynamics-b} \\
+	\overline{\texttt{hd}(\texttt{strgen}\ x\ \texttt{is}\ e\ \texttt{in} <\texttt{hd}\hookrightarrow e_1,
+		\texttt{tl}\hookrightarrow e_2>)\mapsto[e/x]e_1} \label{eq:coinductive-stream-dynamics-c} \\
+	\frac{e\mapsto e'}{\texttt{tl}(e)\mapsto \texttt{tl}(e')} \label{eq:coinductive-stream-dynamics-d} \\
+	\overline{\texttt{tl}(\texttt{strgen}\ x\ \texttt{is}\ e\ \texttt{in} <\texttt{hd}\hookrightarrow e_1,
+		\texttt{tl}\hookrightarrow e_2>)\mapsto \texttt{strgen}\ x\ \texttt{is}\ [e/x]e_2 \ \texttt{in} <\texttt{hd}\hookrightarrow e_1,\texttt{tl}\hookrightarrow e_2>}\label{eq:coinductive-stream-dynamics-e}
+	\end{gather}
+\end{subequations}
+规则\ref{eq:coinductive-stream-dynamics-c}和\ref{eq:coinductive-stream-dynamics-e}说明了流的头和尾依赖与流当前的状态。
+并且注意到，尾是通过把产生子作用到由$e_2$根据当前状态得到的新状态上。
+
+为了推导出流是共归纳类型的特殊情形，我们吧头和尾组合到一个除去形式中，并且重新组织产生子。
+接下来我们考虑下面的静态语义：
+\begin{subequations}\label{eq:coinductive-stream-reform-statics}
+	\begin{gather}
+	\frac{\Gamma\vdash e:\texttt{stream}}
+	{\Gamma\vdash\texttt{unfold}_\texttt{stream}(e):\texttt{nat}\times\texttt{stream}} \label{eq:coinductive-stream-reform-statics-a}\\
+	\frac{\Gamma,x:\tau\vdash e_1:\texttt{nat}\times \tau\ \ \Gamma\vdash e_2:\tau}
+	{\Gamma\vdash\texttt{gen}_\texttt{stream}(x.e_1;e_2):\texttt{stream}}\label{eq:coinductive-stream-reform-statics-b}
+	\end{gather}
+\end{subequations}
+规则\ref{eq:coinductive-stream-reform-statics-a}说明$e$可以被展开成自然数组成的头和另一个流组成的尾。
+流的头$\texttt{hd}(e)$和尾$\texttt{tl(e)}$分别是投影$\texttt{unfold}_\texttt{stream}(e)\cdot\texttt{l}$
+和$\texttt{unfold}_\texttt{stream}(e)\cdot\texttt{r}$。规则\ref{eq:coinductive-stream-reform-statics-b}
+说明一个流是由状态元素$e_2$通过一个表达式$e_1$生成的，$e_1$作为当前状态的函数会产生头元素和下一个状态。
+
+流的动态语义如下：
+\begin{subequations}\label{eq:coinductive-stream-reform-dynamics}
+	\begin{gather}
+	\overline{\texttt{gen}_\texttt{stream}(x.e_1;e_2)\ \texttt{val}} \label{eq:coinductive-stream-reform-dynamics-a}\\
+	\frac{e\mapsto e'}{\texttt{unfold}_\texttt{stream}(e)\mapsto\texttt{unfold}_\texttt{stream}(e')} \label{eq:coinductive-stream-reform-dynamics-b}\\
+	\overline{\texttt{unfold}_\texttt{stream}(\texttt{gen}_\texttt{stream}(x.e_1;e_2))
+	\mapsto \texttt{map}\{t.\texttt{nat}\times t\}(y.\texttt{gen}_\texttt{stream}(x.e_1;y))([e_2/x]e_1)}\label{eq:coinductive-stream-reform-dynamics-c}
+	\end{gather}
+\end{subequations}
+规则\ref{eq:coinductive-stream-reform-dynamics-c}使用了泛型扩展来生成新的流，它是$[e_2/x]e_1$的第二个组成部分。
+展开泛型扩展，我们可以得到下面的规则：
+$$\overline{\texttt{unfold}_\texttt{stream}(\texttt{gen}_\texttt{stream}(x.e_1;e_2))
+\mapsto\langle([e_2/x]e_1)\cdot\texttt{l},\texttt{gen}_\texttt{stream}(x.e_1;([e_2/x]e_1)\cdot\texttt{r})\rangle}$$
+练习15.3要求从根据共归纳流类型的产生子中推导出流的产生子$\texttt{strgen}x\texttt{is}e\texttt{in}<\texttt{hd}\hookrightarrow e_1,
+\texttt{tl}\hookrightarrow e_2>$
+
+\section{静态语义}
+
+我们现在可以用阳性类型运算符来给出关于归纳类型和共归纳类型的描述。我们考虑一个$\textbf{T}$的变种，我们称之为$\textbf{M}$。在这个
+变种中，我们把自然数替换成函数、积、和还有多种归纳与共归纳类型。
+
+\subsection{类型}
+归纳与共归纳类型涉及到\textit{类型变量}（\textit{type variables}），它们的值可以取为各种类型。
+归纳类型和共归纳类型的抽象句法由下面的语法规则给出：
+\begin{align*}
+	\texttt{Typ}\ \ \tau\ \ ::=\ \ &t & &t & &\text{自引用} \\
+	&\texttt{ind}(t.\tau) & &\mu(t.\tau) & &\text{归纳} \\
+	&\texttt{coi}(t.\tau) & &\nu(t.\tau) & &\text{共归纳}
+\end{align*}
+
+类型形式断言如下：$$t_1\ \texttt{type},\dots,t_n\ \texttt{type}\vdash\tau\ \texttt{type}$$
+其中$t_1,\dots,t_n$是类型名字。令$\Delta$是具有形式为$t\ \texttt{type}$的元素的假设（组成的）有限集合，其中，
+$t$是类型的名字。类型的形式断言由下列规则归纳定义：
+\begin{subequations}
+	\begin{gather}
+	\overline{\Delta,t\ \texttt{type}\vdash t\ \texttt{type}} \\
+	\overline{\Delta\vdash\texttt{unit}\ \texttt{type}} \\
+	\frac{\Delta\vdash\tau_1\ \texttt{type}\ \ \Delta\vdash\tau_2\ \texttt{type}}
+	{\Delta\vdash\texttt{prod}(\tau_1;\tau_2)\ \texttt{type}} \\
+	\overline{\Delta\vdash\texttt{void}\ \texttt{type}} \\
+	\frac{\Delta\vdash\tau_1\ \texttt{type}\ \ \Delta\vdash\tau_2\ \texttt{type}}
+	{\Delta\vdash\texttt{sum}(\tau_1;\tau_2)\ \texttt{type}} \\
+	\frac{\Delta\vdash\tau_1\ \texttt{type}\ \ \Delta\vdash\tau_2\ \texttt{type}}
+	{\Delta\vdash\texttt{arr}(\tau_1;\tau_2)\ \texttt{type}} \\
+	\frac{\Delta,t\ \texttt{type}\vdash\tau\ \texttt{type}\ \ \Delta\vdash t.\tau\ \texttt{pos}}
+	{\Delta\vdash\texttt{ind}(t.\tau)\ \texttt{type}} \\
+	\frac{\Delta,t\ \texttt{type}\vdash\tau\ \texttt{type}\ \ \Delta\vdash t.\tau\ \texttt{pos}}
+	{\Delta\vdash\texttt{coi}(t.\tau)\ \texttt{type}}
+	\end{gather}
+\end{subequations}
+
+\subsection{表达式}
+$\textbf{M}$的抽象句法由下面的语法规则给出：
+\begin{align*}
+	\texttt{Exp}\ \ e\ \ ::=\ \ &\texttt{fold}\{t.\tau\}(e) & &\texttt{fold}_{t.\tau} & &\text{构造子} \\
+	&\texttt{rec}\{t.\tau\}(x.e_1;e_2) & &\texttt{rec}(x.e_1;e_2) & &\text{递归子} \\
+	&\texttt{unfold}\{t.\tau\}(e) & &\texttt{unfold}_{t.\tau}(e) & &\text{析构子} \\
+	&\texttt{gen}\{t.\tau\}(x.e_1;e_2) & &\texttt{gen}(x.e_1;e_2) & &\text{产生子} 
+\end{align*}
+具体句法中的下标在可以通过上下文清楚获知时通常会被省去。
+
+$\textbf{M}$的静态语义由下面的定型规则给出：
+\begin{subequations}\label{eq:M-lazy-statics}
+	\begin{gather}
+	\frac{\Gamma\vdash e:[\texttt{ind}(t.\tau)/t]\tau}{\Gamma\vdash\texttt{fold}\{t.\tau\}(e):\texttt{ind}(t.\tau)} \\
+	\frac{\Gamma,x:[\tau'/t]\tau\vdash e_1:\tau'\ \ \Gamma\vdash e_2:\texttt{ind}(t.\tau)}
+	{\Gamma\vdash\texttt{rec}\{t.\tau\}(x.e_1;e_2):\tau'} \\
+	\frac{\Gamma\vdash e:\texttt{coi}(t.\tau)}{\Gamma\vdash\texttt{unfold}\{t.\tau\}(e):[\texttt{coi}(t.\tau)/t]\tau} \\
+	\frac{\Gamma\vdash e_2:\tau_2\ \ \Gamma,x:\tau_2\vdash e_1:[\tau_2/t]\tau}
+	{\Gamma\vdash\texttt{gen}\{t.\tau\}(x.e_1;e_2):\texttt{coi}(t.\tau)}
+	\end{gather}
+\end{subequations}
+
+\section{动态语义}
+
+$\textbf{M}$的动态语义由14章定义阳性泛型扩展操作来描述。下面的规则定义了$\textbf{M}$的惰性动态语义：
+\begin{subequations} \label{eq:M-lazy-dynamics}
+	\begin{gather}
+	\overline{\texttt{fold}\{t.\tau\}(e)\ \texttt{val}}\label{eq:M-lazy-dynamics-a} \\
+	\frac{e_2\mapsto e_2'}{\texttt{rec}\{t.\tau\}(x.e_1;e_2)\mapsto\texttt{rec}\{t.\tau\}(x.e_1;e_2')}\label{eq:M-lazy-dynamics-b} \\
+	\overline{\texttt{rec}\{t.\tau\}(x.e_1;\texttt{fold}\{t.\tau\}(e_2))\mapsto
+	[\texttt{map}^+\{t.\tau\}(y.\texttt{rec}\{t.\tau\}(x.e_1;y))(e_2)/x]e_1}\label{eq:M-lazy-dynamics-c} \\
+	\overline{\texttt{gen}\{t.\tau\}(x.e_1;e_2)\ \texttt{val}}\label{eq:M-lazy-dynamics-d} \\
+	\frac{e\mapsto e'}{\texttt{unfold}\{t.\tau\}(e)\mapsto\texttt{unfold}\{t.\tau\}(e')}\label{eq:M-lazy-dynamics-e} \\
+	\overline{\texttt{unfold}\{t.\tau\}(\texttt{gen}\{t.\tau\}(x.e_1;e_2))\mapsto
+	\texttt{map}^+\{t.\tau\}(y.\texttt{gen}\{t.\tau\}(x.e_1;y))([e_2/x]e_1)} \label{eq:M-lazy-dynamics-f}
+	\end{gather}
+\end{subequations}
+规则\ref{eq:M-lazy-dynamics-c}说明，为了在递归类型的值上计算递归子，我们要归纳地根据类型运算符施加递归子到这个值上，然后对结果
+施加归纳过程。规则\ref{eq:M-lazy-dynamics-f}是前一个规则在共归纳类型上的对偶。
+
+\begin{lemma}
+	当$e:\tau$且$e\mapsto e'$时，$e':\tau$
+\end{lemma}
+
+\begin{proof}
+	根据\ref{eq:M-lazy-dynamics}的规则进行归纳
+\end{proof}
+
+\begin{lemma}
+	如果$e:\tau$，那么在$e\ \normalfont\texttt{val}$和存在$e'$使得$e\mapsto e'$这两个命题中，至少有一个成立
+\end{lemma}
+
+\begin{proof}
+	根据规则\ref{eq:M-lazy-statics}进行归纳
+\end{proof}
+
+所有$\textbf{M}$中的程序一定能终止，但是它的证明超出了现在的范围。
+
+\begin{theorem}[$\textbf{M}$的终止性]
+	如果$e:\tau$，那么存在$e'\ \normalfont\texttt{val}$使得$e\mapsto^*e'$
+\end{theorem}
+
+乍一看，一个有像流一样的无限数据结构的语言拥有终止性是很惊讶的事情，但是要记住，
+无限数据结构（比如流）是通过创造这一持续状态而不是完成的实体来表示的。
+
+\section{求解类型方程}
+
+\noindent 对于阳性类型运算符$t.\tau$，我们可以说归纳类型$\mu(t.\tau)$和共归纳类型$\nu(t.\tau)$都是
+类型方程$t\cong\tau$的\textit{解}(在同构意义上)：
+\begin{subequations}
+	\begin{gather*}
+	\mu(t.\tau)\cong[\mu(t.\tau)/t]\tau \\
+	\nu(t.\tau)\cong[\nu(t.\tau)/t]\tau
+	\end{gather*}
+\end{subequations}
+直觉上来说，这意味着每个归纳类型的值是展开归纳类型的值的折叠。相似地，每个共归纳类型的值的展开都是这个共归纳类型的展开的值。
+在这些同构类型间来回定义函数，可以作为帮助你确信这它们互为各自的逆的一个不错的小练习。
+
+虽然它们都是同一个类型方程的解，但是它们并不互相同构。我们来看看为什么。考虑一个归纳类型$\texttt{nat}\triangleq\mu(t.\texttt{unit}+t)$
+和共归纳类型$\texttt{conat}\triangleq\nu(t.\texttt{unit}+t)$。不正式地说，\texttt{nat} 是最小的（最受限的）包含0（即
+$\texttt{fold}(\texttt{l}\cdot\langle\rangle)$），并且任何类型为\texttt{nat} 的值的后继（即$\texttt{fold}(r\cdot e)$），也是\texttt{nat} 类型。
+与\texttt{nat}对偶，\texttt{conat}是最大的（最不受限制的）表达式$e$，其中$\texttt{unfold}(e)$可以是0（即
+$\texttt{fold}(\texttt{l}\cdot\langle\rangle)$），也可以是某个类型为\texttt{conat}的值的后继（即$\texttt{r}\cdot e$）。
+
+因为\texttt{nat} 是根据它的介入形式还有和类型单射组合定义而成的，在有限时间内只能构造有限自然数。而因为\texttt{conat}是根据除去形式组合定义而成的，
+伴自然数（co-natural number）在有限时间内只能进行有限深度的探索。本质上，在一个终止程序中，给定一个伴自然数，我们只能检验其有限个前驱。结果是：
+\begin{enumerate}
+	\item 存在函数$i:\texttt{nat}\rightarrow\texttt{conat}$能把每个有限的自然数嵌入到无限自然数类型，
+	\item 存在一个“真正无限”的伴自然数$\omega$使得它本质上是后继的无限组合。
+\end{enumerate}
+定义\texttt{nat} 到\texttt{conat}的嵌入是练习15.1的一个主题。无限伴自然数$\omega$定义如下：
+$$\omega\triangleq\texttt{gen}(x.\texttt{r}\cdot x;\langle\rangle)$$
+我们可以检查得$\texttt{unfold}(\omega)\mapsto^*\texttt{r}\cdot\omega$。这说明$\omega$是自己的前驱。
+因为伴自然数$\omega$任何有限前驱都非0，所以$\omega$比任何有限自然数都大。
+
+总而言之，因为同一个类型方程可能有很多个不同解，仅仅知道类型方程的解不能唯一地描述这个类型的性质，自然数和伴自然数就是展示这种不同的很好的例子。
+然而，我们会在第8部分展示，类型方程可以有唯一的解（在同构意义上），而且我们可以不再需要对多项式类型运算符做限制。
+但是我们要付出代价来获得额外的表达能力，即程序不再保证终止。
+
+\section{备注}
+
+$\mathbb{M}$语言是以Mendler命名的，我们当前的处理都是基于他的工作。Mendler的工作主要围绕着范畴论，特别是
+函子代数的概念。类型构造子的函子行为在这一章有很大作用。低于一个类型运算符函子，归纳类型是初始代数，而共归纳类型是最终共代数。
+
+\section*{练习}
+
+\begin{enumerate}
+	\item 定义一个函数$i:\texttt{nat}\rightarrow \texttt{conat}$，它能让每个有限自然数映射为相关的伴自然数。
+	\begin{enumerate}
+		\renewcommand{\theenumi}{\alph{enumi}}
+		\item $\texttt{unfold}(i(\texttt{z}))\mapsto^*\texttt{l}\cdot\langle\rangle$
+		\item $\texttt{unfold}(i(\texttt{s}(\overline{n})))\mapsto^*\texttt{r}\cdot i(\overline{n})$
+	\end{enumerate}
+	\item 根据\ref{section-15.1}节给出的自然数归纳类型的递归子推导出第九章描述的迭代子
+	$\texttt{iter}\ e\ \{\texttt{z}\hookrightarrow e_0|\texttt{s}(x)\hookrightarrow e_1\}$
+	\item 根据\ref{section-15.1}节给出的共归纳流类型的产生子推导出流的产生子$\texttt{strgen}\ x\ \texttt{is}\  e\ \texttt{in}
+	<\texttt{hd}\hookrightarrow e_1, \texttt{tl}\hookrightarrow e_2>$
+	\item 考虑自然数的无限序列的类型$\texttt{seq}\triangleq\texttt{nat}\rightarrow\texttt{nat}$。每个流可以通过下面的方程被转换成
+	一个序列：$$\lambda(\texttt{stream}:s)\lambda(n:\texttt{nat})\texttt{hd}(\texttt{iter} n
+	\{\texttt{z}\hookrightarrow s|\texttt{s}(x)\hookrightarrow\texttt{tl}(x)\})$$
+	证明每个序列可以被转换成一个流，其中它们的第$n$个元素都相等。
+	\item 自然数列表的类型根据下面的介入规则和除去规则定义：
+	\begin{subequations}
+		\begin{gather}
+		\overline{\Gamma\vdash\texttt{nil}:\texttt{natlist}} \\
+		\frac{\Gamma\vdash e_1:\texttt{nat}\ \ \Gamma\vdash e_2:\texttt{natlist}}
+		{\Gamma\vdash\texttt{cons}(e_1;e_2):\texttt{natlist}} \\
+		\frac{\Gamma\vdash e:\texttt{natlist}\ \ \Gamma\vdash e_0:\tau\ \ \Gamma,x:\texttt{nat},y:\tau\vdash e_1:\tau}
+		{\Gamma\vdash\texttt{rec} e\{\texttt{nil}\hookrightarrow e_0|\texttt{cons}(x;y)\hookrightarrow e_1\}:\tau}
+		\end{gather}
+	\end{subequations}
+	相关的动态语义（不论是贪婪还是惰性的）都可以从第九章给出的类型\texttt{nat} 的递归子推导出。给出\texttt{natlist}的归纳类型定义，包括
+	相关的介入形式和除去形式定义。验证它能满足期望的动态语义。
+	\item 考虑可无限二叉树（possibly infinite binary trees，下用PIBT代替）类型类型\texttt{itree}，它有下面的介入形式和除去形式：
+	\begin{subequations}
+		\begin{gather}
+		\frac{\Gamma\vdash e:\texttt{itree}}
+		{\Gamma\vdash\texttt{view}(e):(\texttt{itree}\times\texttt{itree})\ \texttt{opt}} \\
+		\frac{\Gamma\vdash e:\tau\ \ \Gamma,x:\tau\vdash e':(\tau\times\tau)\ \texttt{opt}}
+		{\Gamma\vdash\texttt{itgen}\ x\ \texttt{is}\ e\ \texttt{in}\ e':\texttt{itree}}
+		\end{gather}
+	\end{subequations}
+	因为一个PIBT一定处在连续生成后继的状态，观察一颗树仅仅暴露了最上层的结构。如果观测到了\texttt{null}，那么
+	这棵树就是空的，而如果是$\texttt{just}(e_1)e_2$，那么它就不是空的，并且根据$e_1$和$e_2$得到的子代。
+	为了产生一颗无限的树，选择子代状态的类型$\tau$，给出当前状态$e$和一个状态转换$e'$。$e'$作用在当前状态上
+	时会得到关于子代关系是否完成的判断，如果未完成，则继续把状态提供给它的每一个子结点
+	\begin{enumerate}
+		\renewcommand{\theenumi}{\alph{enumi}}
+		\item 给出刚刚非正式介绍的\texttt{itree}操作的精确动态语义。提示：使用泛型编程！
+		\item 重新用共归纳类型构建类型\texttt{itree}，推导它的介入形式和除去形式的静态语义与动态语义
+	\end{enumerate}
+	\item 练习11.5要求你把\texttt{RS}锁存器定义为一个信号传感器，其中，信号被显示表达为对时间的函数。
+	你需要再一次把\texttt{RS}锁存器定义成信号传感器，但是这次，信号要表示为布尔类型的流。在这样的表示下，
+	时间可以隐式地通过流中连续的元素表达。把\texttt{RS}锁存器定义为一个产生布尔值对信号的传感器。
+\end{enumerate}
+

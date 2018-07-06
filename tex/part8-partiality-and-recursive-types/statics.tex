@@ -1,0 +1,78 @@
+\section{静态语义}
+
+\textbf{PCF}的语法格式定义如下：
+
+\begin{table}[!htbp]
+	\centering
+	\begin{tabular}{lllll}
+		Typ \(\tau\) & \(::=\) & \(\mathtt{nat}\) & \(\mathtt{nat}\) & 自然数 \\
+		& & \(\mathtt{parr}(\tau_1; \tau_2)\) & \(\tau_1 \rightharpoonup \tau_2\) & \gls{partial function} \\
+		Exp \(e\) & \(::=\) & \(x\) & \(x\) & 变量 \\
+		& & \(\mathtt{z}\) & \(\mathtt{z}\) & 零 \\
+		& & \(\mathtt{s}(e)\)　& \(\mathtt{s}(e)\) & 后继 \\
+		& & \(\mathtt{ifz}\{e_0; x.e_1\}(e)\) & \(\mathtt{ifz}\ e\ \{\mathtt{z} \hookrightarrow e_0 | \mathtt{s}(x) \hookrightarrow e_1\}\)　& 零检验 \\
+		& & \(\mathtt{lam}\{\tau\}(x.e)\) & \(\lambda\ (x:\tau)\ e\)　& 抽象 \\
+		& & \(\mathtt{ap}(e_1;e_2)\) & \(e_1(e_2)\) & 应用　\\
+		& & \(\mathtt{fix}\{\tau\}(x.e)\) & \(\mathtt{fix}\ x:\tau\ \mathtt{is}\ e\)　& 递归
+	\end{tabular}
+\end{table}
+
+表达式\(\mathtt{fix}\{\tau\}(x.e)\)是\gls{general recursion}，后面会有具体的讨论；
+而表达式\(\mathtt{ifz}\{e_0; x.e_1\}(e)\)根据\(e\)的值是否是\(\mathtt{z}\)，当不是时绑定前驱给\(x\)。
+
+\textbf{PCF}的静态语义是由以下规则递归地定义的：
+% 这里的编号是直接指定的，而不是自动产生的，请留意
+\begin{gather}
+	\frac{}{
+		\Gamma, x:\tau \vdash x:\tau
+	}
+	\tag{19.1a} \\
+	\frac{}{
+		\Gamma \vdash \mathtt{z}:\mathtt{nat}
+	}
+	\tag{19.1b} \\
+	\frac{
+		\Gamma \vdash e: \mathtt{nat}
+	}{
+		\Gamma \vdash \mathtt(s)(e): \mathtt{nat}
+	}
+	\tag{19.1c} \\
+	\frac{
+		\Gamma \vdash e: \mathtt{nat} \quad 
+		\Gamma \vdash e_0: \tau \quad
+		\Gamma, x: \mathtt{nat} \vdash e_1: \tau
+	}{
+		\Gamma \vdash \mathtt{ifz}\{e_0; x.e_1\}(e): \tau
+	}
+	\tag{19.1d} \\
+	\frac{
+		\Gamma, x: \tau_1 \vdash e: \tau_2
+	}{
+		\Gamma \vdash \mathtt{lam}\{\tau_1\}(x.e): \mathtt{parr}(\tau_1; \tau_2)
+	}
+	\tag{19.1e} \\
+	\frac{
+		\Gamma \vdash e: \mathtt{parr}(\tau_2; \tau) \quad 
+		\Gamma \vdash e_2: \tau
+	}{
+		\Gamma \vdash \mathtt{ap}(e_1; e_2): \tau
+	}
+	\tag{19.1f} \\
+	\frac{
+		\Gamma, x: \tau \vdash e: \tau
+	}{
+		\Gamma \vdash \mathtt{fix}\{\tau\}(x.e): \tau
+	}
+	\tag{19.1g}
+	\label{equ:fix.static}
+\end{gather}
+
+规则\ref{equ:fix.static}反映了\gls{general recursion}的自我参照特性（self-referential nature）。
+为了说明\(\mathtt{fix}\{\tau\}(x.e)\)具有\(\tau\)类型，我们假设它具有将该类型赋值给\(x\)，其中\(x\)代表这个递归表达自身。
+然后检查内部的表达式\(e\)是否在这个假设下具有类型\(\tau\)。
+
+这些结构化的规则，特别包括替换，是可采纳的静态语义。
+
+\begin{lemma}　
+	如果\(\Gamma, x: \tau \vdash e': \tau', \Gamma \vdash e: \tau\)，那么\(\Gamma \vdash [e/x]e': \tau'\)
+\end{lemma}

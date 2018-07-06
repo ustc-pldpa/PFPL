@@ -1,0 +1,63 @@
+\section{基于方法的组织}
+
+基于方法的组织始于对分派矩阵的 “\textit{转置}” （\textit{transpose}），它具有如下的类型：
+
+$$ \prod_{d \in D} \prod_{c \in D} (\tau^{c} \rightharpoonup \rho_{d}) $$
+
+观察转置后的分派矩阵每一列表示一个方法，称之为\textit{方法向量}（\textit{method vector}）$e_{\mathtt{mv}}$ ，其类型为：
+
+$$ \tau_{\mathtt{mv}} \triangleq \prod_{d \in D} (\sum_{c \in C} \tau^{c}) \rightharpoonup \rho_{d} $$
+
+方法向量上的每一项包含一个\textit{分派器}（\textit{dispatcher}），它决定了给定对象的实例数据上函数的结果类型。
+
+对象的值具有类型 $\tau = \sum_{c \in C} \tau^{c} $ ，是实例类型的类之和。比如，对于平面坐标点的和类型：
+
+$$ [{\mathtt{cart}} \hookrightarrow \tau^{\mathtt{cart}}, {\mathtt{pol}} \hookrightarrow \tau^{\mathtt{pol}}] $$
+
+每个点以其所属类做标记，来表明他们是笛卡尔坐标系形式还是极坐标形式。
+
+类 $c$ 的对象只是标记为其所属类的实例数据，作为元素组成对象类型：
+
+$$ {\mathtt{new}}[c](e) \triangleq c \cdot e $$
+
+比如，笛卡尔坐标系点坐标为 $x_{0}$ 与 $y_{0}$，由以下表达式给出：
+
+$$ {\mathtt{new}}[{\mathtt{cart}}](\langle {\mathtt{x}} \hookrightarrow x_{0}, {\mathtt{y}} \hookrightarrow y_{0} \rangle ) \triangleq {\mathtt{cart}} \cdot \langle {\mathtt{x}} \hookrightarrow x_{0}, {\mathtt{y}} \hookrightarrow y_{0} \rangle $$
+
+同理在极坐标系中的点坐标为 $r_{0}$ 与 $\theta_{0}$ 由以下表达式给出：
+
+$$ {\mathtt{new}}[{\mathtt{pol}}](\langle {\mathtt{r}} \hookrightarrow r_{0}, {\mathtt{th}} \hookrightarrow \theta_{0} \rangle \triangleq {\mathtt{pol}} \cdot \langle ) {\mathtt{r}} \hookrightarrow r_{0}, {\mathtt{th}} \hookrightarrow \theta_{0} \rangle $$
+
+基于方法的组织将每个方法的实现合并到 \textit{方法向量} $e_{\mathtt{mv}}$ 中，其类型为 $\tau_{\mathtt{mv}}$ 定义为 $\langle d \hookrightarrow e_{d} \rangle_{d \in D}$，其中对于每个 $d \in D$ 表达式 $ e_{d} : \tau \rightharpoonup \rho_{d}$ 为
+
+$$ \lambda (this : \tau) \, {\mathtt{case}} \, this \{ c \cdot u \hookrightarrow e_{dm} \cdot c \cdot d(u) \}_{c \in C}$$
+
+方法向量中的每一项为一个 \textit{分派函数}（\textit{dispatch function}），它定义了作用在属于某类对象的方法的行为。
+
+以平面坐标点为例，方法向量具有积类型：
+
+$$ \langle {\mathtt{dist}} \hookrightarrow \tau \rightharpoonup \rho_{\mathtt{dist}}, {\mathtt{quad}} \hookrightarrow \tau \rightharpoonup \rho_{\mathtt{quad}} \rangle $$
+
+$\mathtt{dist}$ 方法的分派函数具有以下形式：
+
+$$ \lambda(this : \tau) \, {\mathtt{case}} \, this \{ {\mathtt{cart}} \cdot u \hookrightarrow e_{\mathtt{dm}} \cdot {\mathtt{dist}}(u) \, | \, {\mathtt{pol}} \cdot v \hookrightarrow e_{\mathtt{dm}} \cdot {\mathtt{pol}} \cdot {\mathtt{dist}}(v) \}$$
+
+同理，$\mathtt{quad}$ 方法的分派函数：
+
+$$ \lambda(this : \tau) \, {\mathtt{case}} \, this \{ {\mathtt{cart}} \cdot u \hookrightarrow e_{\mathtt{dm}} \cdot {\mathtt{quad}}(u) \, | \, {\mathtt{pol}} \cdot v \hookrightarrow e_{\mathtt{dm}} \cdot {\mathtt{pol}} \cdot {\mathtt{quad}}(v) \}$$
+
+\textit{信息发送}操作 $e \Leftarrow d$ 作用于对象 $e$ 上方法 $d$ 的分派函数：
+
+$$ e \Leftarrow d \triangleq e_{\mathtt{mv}} \cdot d(e) $$
+
+于是我们得到，对于每个类 $c$ 和方法 $d$，有：
+
+\begin{equation}
+\begin{aligned}
+({\mathtt{new}}[c](e)) \Leftarrow d & \longmapsto^{*} e_{\mathtt{mv}} \cdot d(c \cdot e) \\ 
+& \longmapsto^{*} e_{\mathtt{dm}} \cdot c \cdot d(e)
+ \nonumber
+\end{aligned}
+\end{equation}
+
+结果当然与基于类的方法一样。

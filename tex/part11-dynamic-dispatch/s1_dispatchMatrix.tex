@@ -1,0 +1,90 @@
+\section{分派矩阵}
+因为方法的行为是由其参数的类别决定的，所以也许可以用一个\textit{分派矩阵}（\textit{dispatch matrix}）$ e_{dm} $ 来表示。
+在这个矩阵中，行为类，列为方法，每个元素 $ (c, d) $ 定义了方法 $d$ 作用在参数的类 $c$ 上的行为，由此描述在一个对象的实例数据上的一个函数。
+因此，这个矩阵具有如下形式：
+
+$$ \prod_{c \in C} \prod_{d \in D} (\tau^{c} \rightharpoonup \rho_{d}) $$
+
+其中 $C$ 是类名字的集合，$D$ 是方法名字的集合，$\tau^c$ 是类 $c$ 的实例类型，$ \rho_{d} $ 是方法 $d$ 的结果类型。
+实例类型对所有的作用在给定类上的所有方法都是一样的，且它们的结果类型也是一样的。
+
+举一个便于理解的例子，回想一下前面提到的平面上点的类型。点类型被分为两个类：$ \mathtt{cart} $ （笛卡尔坐标）和 $ \mathtt{pol} $ （极坐标）。
+对于笛卡尔坐标系的点，实例数据有这样的类型：
+
+$$ \tau^{\mathtt{cart}} =  \langle \mathtt{x} \hookrightarrow \mathtt{float}, \mathtt{y} \hookrightarrow \mathtt{float} \rangle $$
+
+在极坐标系中有：
+
+$$ \tau^{\mathtt{pol}} =  \langle \mathtt{r} \hookrightarrow \mathtt{float}, \mathtt{th} \hookrightarrow \mathtt{float} \rangle $$
+
+假设我们有这样两个作用在点类型上的方法：$ \mathtt{dist} $ 和 $ \mathtt{quad} $，前一个计算点到原点距离的平方，后一个计算点的象限。
+距离平方的方法用元组 $ e_{\mathtt{dist}} = \langle \mathtt{cart} \hookrightarrow e^{\mathtt{cart}}_{\mathtt{dist}}, \mathtt{pol} \hookrightarrow e^{\mathtt{pol}}_{\mathtt{dist}} \rangle $ 表示它的类型：
+
+$$ \mathtt{cart} \hookrightarrow \tau^{\mathtt{cart}} \rightharpoonup \rho_{\mathtt{dist}}, \mathtt{pol} \hookrightarrow \tau^{\mathtt{pol}} \rightharpoonup \rho_{\mathtt{dist}} $$
+
+其中，$ \rho_{\mathtt{dist}} = \mathtt{float} $ 是结果类型。
+
+$$ e^{\mathtt{cart}}_{\mathtt{dist}} = \lambda (u : \tau^{\mathtt{cart}})(u \cdot \mathtt{x})^2 + (u \cdot \mathtt{y})^2 $$
+
+上面是平方笛卡尔坐标系下的距离平方的算法，在极坐标系下为：
+
+$$ e^{\mathtt{pol}}_{\mathtt{dist}} = \lambda (v : \tau^{pol})(v \cdot \mathtt{r})^2 $$
+
+同样的，对于求象限的方法，用元组 $ e_{\mathtt{quad}} = \langle \mathtt{cart} \hookrightarrow e^{\mathtt{cart}}_{\mathtt{quad}}, \mathtt{pol} \hookrightarrow e^{\mathtt{pol}}_{\mathtt{quad}} \rangle$ 来表示类型
+
+$$ \langle \mathtt{cart} \hookrightarrow \tau^{\mathtt{cart}} \rightharpoonup \rho_{\mathtt{quad}}, \mathtt{pol} \hookrightarrow \tau^{\mathtt{pol}} \rightharpoonup \rho_{\mathtt{quad}} \rangle $$
+
+其中 $ \rho_{\mathtt{quad}} = [\mathtt{I, II, III, IV}] $ 为象限类型，$ e^{\mathtt{cart}}_{\mathtt{quad}} $ 与 $ e^{\mathtt{pol}}_{\mathtt{quad}} $ 分别为计算两种坐标系下点的象限的方法。
+
+现令 $ C = \{ \mathtt{cart}, \mathtt{pol} \} $ 并且让 $ D = \{ \mathtt{dist}, \mathtt{quad} \} $ ，定义分派矩阵 $ e_{\mathtt{dm}} $ 有类型：
+
+$$ \prod_{c \in C} \prod_{d \in D} (\tau^{c} \rightharpoonup \rho_{d})$$
+
+对于每个类 $ c $ 与每个方法 $ d $，有：
+
+$$ e_{\mathtt{dm}} \cdot c \cdot d \longmapsto^{*} e^{c}_{d} $$
+
+它描述了分派矩阵 $ e_{\mathtt{dm}} $ 、类 $ c $ 与方法 $ d $ 定义作用在类 $ c $ 对象上的 $ d $ 方法的行为。
+
+动态分派是下述内容的抽象：
+
+\begin{itemize}
+\item 对象的抽象类型 $ t_{\mathtt{obj}} $ ，其可由方法作用在不同类上的不同行为进行划分。
+\item 具有 $t_{\mathtt{obj}}$ 类型的操作 $ \mathtt{new}[c](e) $ 构造类 $ c $ 的对象，其实例数据由类型为 $\tau^{c}$ 的表达式 $e$ 给出。
+\item 具有类型 $\rho_{d}$ 的操作 $ e \Leftarrow d $ ，在具有类型 $\tau_{\mathtt{obj}}$ 的表达式 $e$ 上调用方法 $ d $ 。
+\end{itemize}
+
+这些操作必须满足动态分派定义的特征：
+
+$$ (\mathtt{new}[c](e)) \Leftarrow d \longmapsto^{*} e^{c}_{d}(e) $$
+
+上式表示，使用实例数据 $e$ 构造新的类 $c$ 的对象，调用方法 $d$ 作用其上，等价于作用 $e^{c}_d$。
+分派矩阵中类 $c$ 方法 $d$ 的代码作用于实例数据 $e$。
+
+换言之，动态分派是一种\textit{抽象类型}（\textit{abstract type}），它的接口由存在类型给出：
+
+\begin{equation}\label{euqation:26.1}
+\exists(t_{\mathtt{obj}}\langle \mathtt{new} \hookrightarrow \prod_{c \in C} \tau^{c} \rightharpoonup t_{\mathtt{obj}}, \mathtt{snd} \hookrightarrow \prod_{d \in D} t_{\mathtt{obj}} \rightharpoonup \rho_{d} \rangle)
+\end{equation}
+
+实现这个抽象类型主要有两种方法。一种是\textit{基于类的}组织：定义对象为方法的元组，
+对象的构造由一个特殊的方法作用于实例数据。\textit{基于方法的}组织在构造对象的时候，是通过对实例数据加以类的标记实现的，定义方法是通过检查对象的类实现的。
+这两种组织互为同构，可以互相转换。尽管如此，许多程序设计语言还是比较倾向于两者之一，本来是对称的组织被非对称化。
+
+抽象类型（26.1）显示了动态分派的缺点，即每次仅有一条信息可以被发送到某个特定的对象。
+这个缺点在某些情况下看起来很自然，比如在 Simula-67 中的离散事件模拟。但是很多情况下能同时作用于对多个类的对象显得至关重要。
+比如，把一个向量与一个标量值相乘，包括域内的元素与一个交换幺半群；%？？？？？？
+无论是将标量与域或交换幺半群相乘，还是任何特定预见结合的方法都是不自然的。%？？？？？？
+而且，这种乘法不是在运行时检查这个运算是由一个标量和一个向量构成而如此作用的，因为标量或者向量没有固有的东西能标识它们自身。
+% For example, the multiplication of a vector by a scalar combines the
+% elements of a field and a commutative monoid; there is no natural way to associate scalar multipli-
+% cation with either the field or the monoid, nor any way to anticipate that particular combination.
+% Moreover, the multiplication is not performed by checking at run-time that one has a scalar and a
+% vector in hand, for there is nothing inherent in a scalar or a vector that marks them as such
+对于这种情况，解决方案是模型系统（module system）（第 44 与 45 章）与非动态分派。这两种机制出现的目的不同，互为补充。
+
+同样，我们可以反驳一个广泛的谬误：抽象类型的值不能同构。有些时候说一个复数的抽象类型必须有唯一的表示，比如用直角坐标表示。
+这是个谬论。尽管一个抽象类型定义单一的类型，但如果说对象仅能有单一表示就是错的。抽象类型可以实现加法，该操作分派在相应的加数上计算出结果，
+动态分配是数据抽象的一种使用方式，因此不能反对这一点。%？？？？？？
+% The abstract type can be implemented as a sum, and the operations may correspondingly dispatch on the summand to compute 
+% the result. Dynamic dispatch is a mode of use of data abstraction, and therefore cannot be opposed to it.

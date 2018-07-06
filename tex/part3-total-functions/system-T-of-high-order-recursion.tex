@@ -1,0 +1,255 @@
+\chapter{高阶递归的T系统}
+
+\textbf{T}系统，即著名的\textit{哥德尔T系统}，是函数类型与自然数类型的结合。对比于给自然数配备一些随机选择的算术操作的\textbf{E}语言，\textbf{T}语言提供称为\textit{简单递归}的通用机制，通过这种机制可以定义这些基本类型。简单递归描述自然数最重要的归纳特征，因此可以作为使用这种语言的程序固有的可终止性的证明。所以，我们可以只定义语言中对每个参数总能返回一个结果的\textit{完全函数}。本质上\textbf{T}语言中的每个程序都伴随着一个可终止性的证明。尽管这看起来是应对无限循环的一种保护手段，也可以说明一些程序不能使用\textbf{T}语言书写。为做到这些我们需要一个对语言中所有可能的程序的可终止性的证明，我们可以证明这个可终止性证明不存在。
+
+\section{静态语义}
+
+\textbf{T}语言的语法通过以下语法给出：
+
+$$
+\begin{array}{llll}
+\mathsf{Typ}\quad\tau\quad ::= \quad
+    &\mathtt{nat}                   &\mathtt{nat}         &\text{自然数}\\
+    &\mathtt{arr}(\tau_1;\tau_2)    &\tau_1\to\tau_2    &\text{函数}\\
+\mathsf{Exp}\quad e \quad ::= \quad
+    &x             &x             &\text{变量}\\
+    &\mathtt{z}    &\mathtt{z}    &\text{零}\\
+    &\mathtt{s}(e) &\mathtt{s}(e) &\text{后继}\\
+    &\mathtt{rec}\{e_0;x.y.e_1\}(e)    &\mathtt{rec}\  e\{\mathtt{z} \hookrightarrow e_0 | \mathtt{s}(x)\  \mathtt{with}\  y \hookrightarrow e_1 \}    &\text{递归}\\
+    &\mathtt{lam}\{\tau\}(x.e)    &\lambda(x.\tau)e    &\text{函数抽象}\\
+    &\mathtt{ap}(e_1;e_2)    &e_1(e_2)    &\text{函数应用}
+\end{array}
+$$
+我们把表达式$\mathtt{s}(...\mathtt{s}(\mathtt{z}))$简写为$\overline{n}$，表示后继被作用于零上$n(n\ge0)$次。表达式$\mathtt{rec}\{e_0;x.y.e_1\}(e)$称为\textit{递归器}，它表示从$e_0$开始形式转换$x.y.e_1$的$e$轮迭代,变量绑定$x$表示前驱，变量绑定$y$表示第$x$轮迭代的结果，递归器的具体语法中的“$\mathtt{with}$”子句把变量$y$与递归调用的结果绑定，稍后会更清晰。
+
+% 引用第10章
+有时\textit{迭代器}$\mathtt{iter}\{e_0;y.e_1\}(e)$被认为是递归器的替代。它与递归器有基本相同的含义，除了只有$e_1$中递归调用的结果被绑定于$y$，前驱没有绑定。显然迭代器时递归器的一种特殊情形，因为我们经常忽略前驱绑定。相对地，如果语言中有积类型（第10章\ref{}），递归器可以使用迭代器定义。为了使用迭代器定义递归器，我们需要在迭代特定的计算的同时计算前驱。
+
+\textbf{T}语言的静态语义通过以下类型规则给出：
+
+\begin{subequations}
+\begin{gather}
+\frac{}{\Gamma,x:\tau\vdash x:\tau}\\
+\frac{}{\Gamma\vdash\mathtt{z}:\mathtt{nat}}\\
+\frac{\Gamma\vdash e:\mathtt{nat}}{\Gamma \vdash \mathtt{s}(e):\mathtt{nat}}\\
+\frac{\Gamma \vdash e:\mathtt{nat}\quad\Gamma\vdash e_0:\tau\quad\Gamma,x:\mathtt{nat},y:\tau\vdash e_1:\tau}{\Gamma\vdash\mathtt{rec}\{e_0;x.y.e_1\}(e):\tau}\\
+\frac{\Gamma,x:\tau_1\vdash e:\tau_2}{\Gamma\vdash\mathtt{lam}\{\tau_1\}(x.e):\mathtt{arr}(\tau_1;\tau_2)}\\
+\frac{\Gamma\vdash e_1:\mathtt{arr}(\tau_2;\tau)\quad\Gamma\vdash e_2:\tau_2}{\Gamma\vdash\mathtt{ap}(e_1;e_2):\tau}
+\end{gather}
+\end{subequations}
+
+和往常一样，置换的结构规则可接受性至关重要。
+
+\begin{lemma}
+如果$\Gamma\vdash e:\tau$并且$\Gamma,x:\tau\vdash e':\tau'$，则$\Gamma\vdash[e/x]e':\tau'$。
+\end{lemma}
+
+\section{动态语义}
+
+\textbf{T}语言的闭式值通过以下规则定义：
+
+\begin{subequations}
+\begin{gather}
+\frac{}{\mathtt{z}\ \mathsf{val}}\\
+\frac{[e\ \mathsf{val}]}{\mathtt{s}(e)\ \mathsf{val}}\label{equ:T-value-successor}\\
+\frac{}{\mathtt{lam}\{\tau\}(x.e)\ \mathsf{val}}
+\end{gather}
+\end{subequations}
+规则（\ref{equ:T-value-successor}）的前提被包含在后继的\textit{及早}求值，但不包含于后继的\textit{惰性}求值中。
+
+\textbf{T}语言的动态转换规则通过以下规则给出：
+
+\begin{subequations}
+\begin{gather}
+\left[\frac{e\longmapsto e'}{\mathtt{s}(e)\longmapsto\mathtt{s}(e')}\right]\\
+\frac{e_1\longmapsto e_1 '}{\mathtt{ap}(e_1;e_2)\longmapsto\mathtt{ap}(e_1 ';e_2)}\\
+\left[\frac{e_1\ \mathsf{val}\quad e_2\longmapsto e_2'}{\mathtt{ap}(e_1;e_2)\longmapsto\mathtt{ap}(e_1;e_2')}\right]\\
+\frac{[e_2\ \mathsf{val}]}{\mathtt{ap}(\mathtt{lam}\{\tau\}(x.e);e_2)\longmapsto[e2/x]e}\\
+\frac{e\longmapsto e'}{\mathtt{rec}\{e_0;x.y.e_1\}(e)\longmapsto\mathtt{rec}\{e_0;x.y.e_1\}(e')}\\
+\label{equ:T-rec-zero}\frac{}{\mathtt{rec}\{e_0;x.y.e_1\}(\mathtt{z})\longmapsto e_0}\\
+\label{equ:T-rec-successor}\frac{\mathtt{s}(e)\ \mathsf{va}}{\mathtt{rec}\{e_0;x.y.e_1\}(\mathtt{s}(e))\longmapsto[e,\mathtt{rec}\{e_0;x.y.e_1(e)/x,y\}]e_1}
+\end{gather}
+\end{subequations}
+带括号的规则和规则的前提被包含在后继的及早求值和传值调用的函数应用中，但不包含于后继的惰性求值和按名调用的函数应用中。规则（\ref{equ:T-rec-zero}）和（\ref{equ:T-rec-successor}）规定递归器在$\mathtt{z}$和$\mathtt{s}(e)$上的行为。在前一种情况下递归器退化为$e_0$，在后一种情况下变量$x$与前驱$e$绑定，$y$与$e$上（未求值的）的递归绑定。如果后续的计算不需要$y$的值，则递归调用不会执行。
+
+\begin{lemma}[范式]\label{lemma:T-canonical-form}
+如果$e:\tau$并且$e\ \mathsf{val}$，则
+\begin{itemize}
+\item[1.] 如果$\tau=\mathtt{nat}$，则$e=\mathtt{z}$成立或存在$e'$使$e=\mathtt{s}(e')$成立。
+\item[2.] 如果$\tau=\tau_1\to\tau_2$，则存在$e_2$使$e=\lambda(x:\tau_1)e_2$成立。
+\end{itemize}
+\end{lemma}
+
+\begin{theorem}[安全性]\label{theorem:T-safety}
+\begin{itemize}
+\item[1.] 如果$e:\tau$并且$e\longmapsto e'$，则$e':\tau$。
+\item[2.] 如果$e:\tau$，则$e\ \mathsf{val}$成立或存在$e'$使$e\longmapsto e'$成立。
+\end{itemize}
+\end{theorem}
+
+\section{可定义性}
+
+一个自然数上的数学函数$f:\mathbb{N}\to\mathbb{N}$在\textbf{T}语言中是\textit{可定义的}当且仅当存在一个$\mathtt{nat}\to\mathtt{nat}$类型的表达式$e_f$使得对所有$n\in\mathbb{N}$，
+
+\begin{equation}
+e_f(\overline{n})\equiv\overline{f(n)}:\mathtt{nat}.
+\end{equation}
+也就是说，数学函数$f:\mathbb{N}\to\mathbb{N}$是可定义的当且仅当存在一个$\mathtt{nat}\to\mathtt{nat}$类型的表达式$e_f$使得，当应用于参数$n\in\mathbb{N}$的数学表示时，函数应用定义等价于$f(n)\in\mathbb{N}$的数值表示。
+
+\textbf{T}语言中的定义等价，写作$\Gamma\vdash e\equiv e':\tau$，是包含以下公理的最强的等价条件：
+
+\begin{subequations}
+\begin{gather}
+\frac{\Gamma,x:\tau_1\vdash e_2:\tau_2\quad\Gamma\vdash e_1:\tau_1}{\Gamma\vdash\mathtt{ap}(\mathtt{lam}\{\tau_1\}(x.e_2);e_1)\equiv[e_1/x]e_2:\tau_2}\\
+\frac{\Gamma\vdash e_0:\tau\quad\Gamma,x:\tau\vdash e_1:\tau}{\Gamma\vdash\mathtt{rec}\{e_0;x.y.e_1\}(\mathtt{z})\equiv e_0:\tau}\\
+\frac{\Gamma\vdash e_0:\tau\quad\Gamma,x:\tau\vdash e_1:\tau}{\Gamma\vdash\mathtt{rec}\{e_0;x.y.e_1\}(\mathtt{s}(e))\equiv[e,\mathtt{rec}\{e_0;x.y.e_1\}(e)/x,y]e_1:\tau}
+\end{gather}
+\end{subequations}
+
+例如，加倍函数，$d(n)=2\times n$，在\textbf{T}语言中可由如下表达式$e_d:\mathtt{nat}\to\mathtt{nat}$定义：
+\begin{equation*}
+\lambda(x:\mathtt{nat})\ \mathtt{rec}\ x\ \{\mathtt{z}\hookrightarrow\mathtt{z}|\mathtt{s}(u)\ \mathtt{with}\ v\hookrightarrow\mathtt{s}(\mathtt{s}(v))\}.
+\end{equation*}
+为验证表达式定义了加倍函数，我们可以对$n\in\mathbb{N}$归纳进行。对归纳基础，容易得到
+\begin{equation*}
+e_d(\overline{0})\equiv\overline{0}:\mathtt{nat}.
+\end{equation*}
+对归纳过程，假设
+\begin{equation*}
+e_d(\overline{n})\equiv\overline{d(n)}:\mathtt{nat}.
+\end{equation*}
+然后使用定义等价的规则计算：
+$$
+\begin{array}{ll}
+e_d(\overline{n+1})  &\equiv\mathtt{s}(\mathtt{s}(e_d(\overline{n})))\\
+                &\equiv\mathtt{s}(\mathtt{s}(\overline{2\times n}))\\
+                &=\overline{2\times(n+1)}\\
+                &=\overline{d(n+1)}.
+\end{array}
+$$
+
+另一个例子，考虑如下被称为\textit{阿克曼函数}的函数，通过以下等式定义：
+\begin{equation*}
+A(0,n)=n+1
+\end{equation*}
+\begin{equation*}
+A(m+1,0)=A(m,1)
+\end{equation*}
+\begin{equation*}
+A(m+1,n+1)=A(m,A(m+1,n)).
+\end{equation*}
+阿克曼函数增长非常迅速。例如，$A(4,2)\approx2^{65,536}$，经常被引用作比宇宙中原子总数更大的数！然而我们可以看出阿克曼函数可以被对参数对$(m,n)$的词典归纳完全定义。在每次递归调用中，要么$m$减小，要么$m$保持不变但是$n$减小，因此在归纳意义上递归调用是良定义的，$A(m,n)$也是。
+
+\textit{一阶简单递归函数}是$\mathtt{nat}\to\mathtt{nat}$类型的使用递归器但没有使用任何高阶函数定义的函数。阿克曼函数不是一阶简单递归函数，它是高阶简单递归函数。说明它在\textbf{T}语言中可定义的关键在于$A(m+1,n)$从$A(m,1)$开始迭代$n$次函数调用$A(m,-)$。作为辅助，定义高阶函数
+\begin{equation*}
+\mathtt{it}:(\mathtt{nat}\to\mathtt{nat})\to\mathtt{nat}\to\mathtt{nat}\to\mathtt{nat}
+\end{equation*}
+为$\lambda$-抽象
+\begin{equation*}
+\lambda(f:\mathtt{nat}\to\mathtt{nat})\lambda(n:\mathtt{nat})\ \mathtt{rec}\ n\ \{\mathtt{z}\hookrightarrow\mathtt{id}|\mathtt{s}(\underline{\hspace{0.5em}})\ \mathtt{with}\ g\hookrightarrow f\circ g\},
+\end{equation*}
+其中$\mathtt{id}=\lambda(x:\mathtt{nat})x$是标识符，$f\circ g=\lambda(x:\mathtt{nat})f(g(x))$是$f$和$g$的复合。容易证明
+\begin{equation*}
+\mathtt{it}(f)(\overline{n})(\overline{m})\equiv f^{(n)}(\overline{m}):\mathtt{nat},
+\end{equation*}
+其中表达式右部是$f$从$\overline{m}$开始的$n$轮复合。现在在我们可以定义阿克曼函数
+\begin{equation*}
+e_a:\mathtt{nat}\to\mathtt{nat}\to\mathtt{nat}
+\end{equation*}
+为表达式
+\begin{equation*}
+\lambda(m:\mathtt{nat})\ \mathtt{rec}\ m\ \{\mathtt{z}\hookrightarrow\mathtt{s}|\mathtt{s}(\underline{\hspace{0.5em}})\ \mathtt{with}\ f\hookrightarrow\lambda(n:\mathtt{nat})\ \mathtt{it}(f)(n)(f(\overline{1}))\}.
+\end{equation*}
+
+可以验证以下等式是成立的：
+\begin{equation}
+e_a(\overline{0})(\overline{n})\equiv\mathtt{s}(\overline{n})
+\end{equation}
+\begin{equation}
+e_a(\overline{m+1})(\overline{0})\equiv e_a(\overline{m})(\overline{1})
+\end{equation}
+\begin{equation}
+e_a(\overline{m+1})(\overline{n+1})\equiv e_a(\overline{m})(e_a(\mathtt{s}(\overline{m}))(\overline{n}))
+\end{equation}
+也就是说，阿克曼函数在\textbf{T}语言中是可定义的。
+
+\section{不可定义性}
+
+在\textbf{T}语言中不能定义无限循环。
+
+\begin{theorem}\label{theorem:T-val-equiv}
+如果$e:\tau$，则存在$v\ \mathsf{val}$使得$e\equiv v:\tau$。
+\end{theorem}
+
+\begin{proof}
+% 引用推论46.15
+见推论46.15\ref{}。
+\end{proof}
+
+因此，\textbf{T}语言中函数类型的值的行为类似数学函数：如果$e:\tau_1\to\tau_2$并且$e_1:\tau_1$，则$e(e_1)$求值结果为$\tau_2$类型的值。而且如果$e:\mathtt{nat}$，则存在一个自然数$n$使得$e\equiv\overline{n}:\mathtt{nat}$。
+
+通过这些，我们可以使用称为\textit{对角化}的技术说明自然数上存在\textbf{T}语言中不可定义的函数。我们利用称为\textit{哥德尔数码}的计数，哥德尔数码将一个独一无二的自然数赋值给\textbf{T}语言上的每一个闭式表达式。通过赋值唯一的自然数给每个表达式，我们可以在\textbf{T}语言上像处理数值一样处理表达式，这样\textbf{T}语言能够使用自己的程序计算。\footnote{相同的技术在哥德尔著名的不完备性定理的证明的核心部分中使用。哥德尔认为自然数上特定函数在\textbf{T}语言中的不可定义性可以被认为是不完备性的一种形式。}
+
+哥德尔数码的本质可以通过以下抽象语法树的简单构造过程描述。（抽象绑定树的一般化稍微困难一些，主要复杂性在于确保所有$\alpha$-等价的表达式被赋值相同的哥德尔数码。）一个一般的抽象语法树$a$有形式$o(a_1,...,a_k)$，其中$o$是$k$元操作符。枚举所有操作符使得每个操作符有一个索引$i\in\mathbb{N}$，令$m$为枚举中$o$的索引。定义$a$的\textit{哥德尔数码}$\ulcorner a\urcorner$为数值
+\begin{equation*}
+2^{m}3^{n_1}5^{n_2}...p_{k}^{n_k},
+\end{equation*}
+其中$p_k$是第$k$个质数（因此$p_0=2$，$p_1=3$，以此类推），$n_1$，……，$n_k$是$a_1$，……，$a_k$各自的哥德尔数码。这个过程赋值一个自然数给每个抽象语法树。相对地，给定一个自然数$n$，我们可以应用素因子分解定理将$n$唯一地解释为一个抽象语法树。（如果素因子分解的形式错误，只可能因为操作符与因子数量不匹配，$n$没有编码任何抽象语法树。）
+
+现在使用这种表示方式，我们可以定义一个（数学）函数$f_{univ}:\mathbb{N}\to\mathbb{N}\to\mathbb{N}$使得对于任何$e:\mathtt{nat}\to\mathtt{nat}$，$f_{univ}(\ulcorner e\urcorner)(m)=n$当且仅当$e(\overline{m})\equiv\overline{n}:\mathtt{nat}$。\footnote{当$k$不是任何表达式$e$的编码时，$f_{univ}(k)(m)$的值可以被随机选取为零。}动态语义的确定性与定理\ref{theorem:T-val-equiv}确保$f_{univ}$是一个良定义的函数。它被称为\textbf{T}语言的\textit{通用函数}，因为它规定任何$\mathtt{nat}\to\mathtt{nat}$类型的表达式$e$的行为。我们使用通用函数定义辅助数学函数$\delta(m)=f_{univ}(m)(m)$，它被称为\textit{对角函数}$\delta:\mathbb{N}\to\mathbb{N}$。选取$\delta$函数使得$\delta(\ulcorner e\urcorner)=n$当且仅当$e(\overline{\ulcorner e\urcorner})\equiv\overline{n}:\mathtt{nat}$。（这种定义方式的动机稍后会更清晰。）
+
+函数$f_{univ}$在\textbf{T}语言中是不可定义的。假设它可以通过表达式$e_{univ}$定义，则对角函数$\delta$可以通过以下表达式定义
+\begin{equation*}
+e_\delta=\lambda(m:\mathtt{nat})e_{univ}(m)(m).
+\end{equation*}
+但在这种情况下，我们有以下等式成立
+$$
+\begin{array}{ll}
+e_\delta(\overline{\ulcorner e\urcorner})  &\equiv e_{univ}(\overline{\ulcorner e\urcorner})(\overline{\ulcorner e\urcorner})\\
+                                           &\equiv e(\overline{\ulcorner e\urcorner}).
+\end{array}
+$$
+现在令$e_\Delta$为函数表达式
+\begin{equation*}
+\lambda(x:\mathtt{nat})\mathtt{s}(e_\delta(x)),
+\end{equation*}
+因此我们可以推导出
+$$
+\begin{array}{ll}
+e_\Delta(\overline{\ulcorner e_\Delta\urcorner})    &\equiv\mathtt{s}(e_\delta(\overline{\ulcorner e_\Delta\urcorner}))\\
+                                                    &\equiv\mathtt{s}(e_\Delta(\overline{\ulcorner e_\Delta\urcorner})).
+\end{array}
+$$
+但可终止性定理推出存在$n$使得$e_\Delta(\overline{\ulcorner e_\Delta\urcorner})\equiv\overline{n}$，因此我们有$\overline{n}\equiv\mathtt{s}(\overline{n})$，这是不可能的。
+
+我们说语言$\mathcal{L}$是\textit{通用的}如果可以使用$\mathcal{L}$自己写一个$\mathcal{L}$的解释器。直觉上很显然在我们可以在\textit{一些}足够强大的编程语言中可以定义的意义下$f_{univ}$是可计算的，但以上论述说明\textbf{T}语言还无法满足要求，它不是通用编程语言。回顾之前的证明可以揭示一个不可避免的权衡：坚持所有的表达式可终止，我们必须丢失通用性——存在语言中不可定义的可计算函数。
+
+\section{注记}
+
+% 引用参考文献
+\textbf{T}系统在哥德尔关于算术的一致性的研究中被提出（哥德尔，1980\ref{}）。他指出如何将算术中的证明“编译”为\textbf{T}系统中良类型的项和减少算术中的一致性问题为\textbf{T}系统中程序的可终止性。这可能是第一种设计直接受到程序的（可终止性）验证的影响的编程语言。
+
+\section*{练习}
+
+\begin{itemize}
+\item[9.1.] 证明引理\ref{lemma:T-canonical-form}.
+\item[9.2.] 证明定理\ref{theorem:T-safety}.
+\item[9.3.] 试证明如果$e:\mathtt{nat}$是闭式的，则存在$n$使得在及早求值的语义下$e\longmapsto^*\overline{n}$。证明在哪里失败？
+\item[9.4.] 试证明所有良类型的闭式项的可终止性：如果$e:\tau$则存在$e'\ \mathsf{val}$使得$e\longmapsto^*e'$。如果需要，你可以自由使用引理\ref{lemma:T-canonical-form}和定理\ref{theorem:T-safety}。尝试在哪里失败？你能找到一个更强的归纳假设避开困难吗?
+\item[9.5.] 通过以下对$\tau$的结构的归纳定义一个$\tau$类型的闭式项$e$\textit{在类型$\tau$上传递可终止}：
+\begin{itemize}
+\item[(a)] 如果$\tau=\mathtt{nat}$，则$e$在类型$\tau$上传递可终止当且仅当$e$可终止（也就是说，当且仅当存在一些$n$使得$e\longmapsto^*\overline{n}$）；
+\item[(b)] 如果$\tau=\tau_1\to\tau_2$，则$e$传递可终止当且仅当$e_1$在类型$\tau_1$上传递可终止时$e(e_1)$在类型$\tau_2$上传递可终止。
+\end{itemize}
+试证明良类型项的传递可终止性：如果$e:\tau$，则$e$在类型$\tau$上传递可终止。更强的归纳假设避开在练习9.4中出现的困难，但引入另一个障碍。问题在哪里？你能找到一个更强的归纳假设在这个证明中起作用吗？
+\item[9.6.] 说明如果$e$在类型$\tau$上传递可终止，$e':\tau$，并且$e'\longmapsto e$，则$e$在类型$\tau$上也传递可终止。（对这个结果的需求在练习9.5的解答中会更清晰。）
+\item[9.7.] 定义一个非闭式的良类型的项
+\begin{equation*}
+x_1:\tau_1,...,x_n:\tau_n\vdash e:\tau
+\end{equation*}
+是\textit{开放传递可终止}的当且仅当每个替换实例
+\begin{equation*}
+[e_1,...,e_n/x_1,...,x_n]e
+\end{equation*}
+当每个$1\ge i\ge n$的$e_i$在类型$\tau_i$上闭式传递可终止时在类型$\tau$上闭式传递可终止。从结果中得到练习9.3。
+\end{itemize}

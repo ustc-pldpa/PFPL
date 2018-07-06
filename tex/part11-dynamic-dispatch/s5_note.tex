@@ -1,0 +1,30 @@
+\section{后记}
+
+“面向对象”这个术语对不同的人来说意义不同。显然动态分派矩阵，方法作用在类的实例上，是一种对面向对象的理解。这些特征来自于和类型、积类型以及函数类型的更一般的概念。它们在各种场合或单独或组合地被使用。
+不论在基于类或基于方法的组织中，其内在的对称性看起来是错位的，这是一种偏见。由 26.1 式抽象出的动态分派承认任一形式的具体实现，如章节 26.2 与 26.3 所示。在研究面向对象的文献中，动态分派是一个重要的方面。
+Abadi 与 Cardelli（1996）以及 Pierce（2002）在这方面做了大量的工作。
+
+\section{练习}
+
+\begin{enumerate}
+\item
+思考这样一种可能，一些方法可能仅在某些类上做出定义，这样一来，信息发送的操作可能会在运行时产生“无法理解”的错误。使用 11.3.4 节定义的类型 $\tau \, \mathtt{opt}$ 重写分派矩阵，以说明“无法理解”的错误。
+使用修改的分派矩阵，重新构建动态的基于类与基于方法的实现。分两个阶段进行。第一个阶段忽略自引用的可能，这样作用在某个特定类的实例上的方法就不会引发“无法理解”的错误。第二阶段，使用你第一阶段的答案，重新实现动态分配矩阵，以将方法的行为引发“不能理解”的错误考虑进去。
+
+\item
+类型优化可以用来消除在练习 26.1 中出现的“无法理解”的错误。如果要这样做，首先需要对每个 $c \in C$，方法子集 $ D_c \subseteq D $ 必须在类 $c$ 的实例上是良定义的。这就要求，对于每个 $d \in D$，集合 $C_d \triangleq \{ c \in C \, | \, d \in D_c\}$ 上的 $d$ 都是良定义的。
+使用加数优化类型 $\tau \mathtt{opt}$，类型优化定义为：
+$$ \phi_{dm} \triangleq \prod_{c \in C}(\prod_{d \in D_c} \mathtt{just} (\top_{\tau^{c}} \rightharpoonup \top_{\rho_{d}})) \times (\prod_{d \in D \backslash D_c} \top_{(\tau^{c} \rightharpoonup \rho_d) \, \mathtt{opt}}) $$
+其中，优化分派矩阵类型细化到列的排列中\footnote[3]{这么排列是为了记号方便，同时可以避免解释其含义的开销}。它规定了如果 $d \in D_c$ 那么分派矩阵的元素对于类 $c$ 与方法 $d$ 必然存在，且不对其他元素作出限制。假设 $e_{\mathtt{dm}} \in_{\tau_{\mathtt{dm}}} \phi_{\mathtt{dm}}$ 符合预期。假设对象类型为 $t_{\mathtt{obj}}$ 基于方法的组织是它们所有实例类型的类的和类型。
+(a)定义具有类型 $t_{\mathtt{obj}}$ 的优化 $\mathtt{inst}[c]$ 与 $\mathtt{admits}[d]$ 表明 $e \in t_{\mathtt{obj}}$ 是类 $c \in C$ 的一个实例，且 $e$ 承认方法  $d \in D$。说明如果 $d \in D_c$，则有 $\mathtt{inst}[c] \leq \mathtt{admits}[d]$，也就是说类 $c$ 的任何实例承认在该类上的任何方法 $d$。
+(b)在 $\mathtt{inst}[c]$ 与 $\mathtt{admits}[d]$ 上定义 $\phi_{\mathtt{cv}} \sqsubseteq \tau_{\mathtt{cv}}$ 和 $\phi_{\mathtt{mv}} \sqsubseteq \tau_{\mathtt{mv}}$，使得 $e_{\mathtt{cv}} \in_{\tau_{\mathtt{cv}}} \phi_{\mathtt{cv}}$ 与 $ e_{\mathtt{mv}} \in_{\tau_{\mathtt{mv}}} \phi_{\mathtt{mv}} $ 成立。注意使用练习 26.1 中的类向量与方法向量。
+(c)根据类创建与消息发送的定义以及练习 26.1 中使用的类向量与方法向量，推出“如果消息 $d \in D_c$ 被发送到实例 $c \in C$，那么“没有‘无法理解’的错误会在良定义的程序上运行时产生”。
+
+\item
+使用自引用建立一个分派矩阵，在其中有两个方法在一个类的实例上可以互相递归调用。特别地，让 $\mathtt{num}$ 为数的类，类型为 $\tau^{\mathtt{num}} = \mathtt{nat}$ ，设两个方法为 $ev$ 与 $od$，结果类型为 $\rho_{ev} = \rho_{od} = \mathtt{bool}$。
+为类 $\mathtt{num}$ 定义分派矩阵上 $\mathtt{ev}$ 和 $\mathtt{od}$ 的元素，使它们通过费力地递归判断一个数字是奇数还是偶数。
+\item
+拓展自引用，以允许构造器的参数中可能会牵涉到对象以及结果中可能会牵涉到对象的方法。特别地，允许抽象对象类型 $t_{\mathtt{obj}}$ 出现在具有类型 $\tau^{c}$ 的类中，或是出现在结果类型为 $\rho_{d}$ 的方法 $d$ 中。重做章节 26.4 中的改进，使其一般化。
+\textit{提示：}使用第 20 章描述的递归类型。
+
+\end{enumerate}

@@ -11,6 +11,7 @@ section/format  += \raggedright,
 \usepackage{amsfonts}            % ams fonts
 \usepackage{amssymb}             % amsmath
 \usepackage{amsthm}              % theorem environment
+\usepackage{mathtools}
 \newtheorem{theorem}{{定理}}[chapter]
 \newtheorem{lemma}{{引理}}[chapter]
 \newtheorem{corollary}{{推论}}[chapter]
@@ -20,7 +21,8 @@ section/format  += \raggedright,
 
 % see bcprules.tex
 \usepackage{bcprules}
-
+\usepackage{enumitem}
+\usepackage{mathpazo}
 \usepackage[dvipsnames]{xcolor}
 
 \usepackage{mathrsfs}            % mathrsfs
@@ -50,7 +52,7 @@ section/format  += \raggedright,
 \makeglossaries
 \input terminology
 
-
+\usepackage{array}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Latin

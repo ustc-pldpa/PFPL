@@ -1,1 +1,415 @@
-\chapter{假设性与一般性判断}
+\chapter{假设性与一般性断言}
+
+假设性断言（Hypothetical Judgement）表达的是一个或多个假设与一个结论之间的蕴含关系。
+在此，我们将考虑两种蕴含的概念，分别称为可推导性（Derivability）和可接受性（Admissibility）。
+他们都表达了蕴涵的一种形式，但它们的不同之处在于：在新规则的延伸下，可推导性性是稳定的，可接受性不是。
+一般性断言（General Judgment）表达的是一个断言的普适性，或通用性。
+一般性断言有两种形式：一般化和参数化。
+一般化断言表达了一个断言中变量的所有替代实例的一般性。
+参数断言则表达的是一个断言中符号重命名的一般性。
+
+\section{假设性断言}
+
+假设性断言将表达以一个或多个假设的有效性为条件的结论的有效性的规则 编码。 
+根据结论以假设为条件的意义，有两种形式的假设性断言。
+一个在扩展更多的规则时稳定，另一个不是。
+
+\subsection{可推导性}
+
+对于一个给定的规则集$\mathcal{R}$，我们定义\textit{可推导性}，它的形式是$J_1,\dots,J_k\vdash_\mathcal{R}K $，$J_i$与$K$是基本断言，它是指我们可以从$\mathcal{R}$的扩展$\mathcal{R}\cup \{J_1,\dots,J_k\}$ 利用如下公理来推导出$K$
+$$\frac{\qquad}{J_1} \qquad \cdots \qquad \frac{\qquad}{J_k}$$
+
+我们将这一断言的假设，或叫前件，$J_1,\dots,J_k$称为临时公理。通过组合$\mathcal{R}$中的规则，我们可以推导出这个断言的结论，或后件。这样，一个假设性断言的证明是由使用$\mathcal{R}$中的规则来从假设中推导结论组成的。
+
+我们使用希腊字母（通常是$\Gamma$或$\Delta$）来表示一个基本断言的有限集。$\mathcal{R}\cup\Gamma$表示利用$\Gamma$中的每一条断言来对$\mathcal{R}$进行扩展。断言$\Gamma \vdash_\mathcal{R}K$的意思是$K$可以由规则集$\mathcal{R}\cup\Gamma$推导出来。
+断言$\vdash_\mathcal{R}\Gamma$意指对于任意的$J\in \Gamma$都有$\vdash_\mathcal{R}J$。
+与$J_1,\dots,J_n\vdash_\mathcal{R}J$等价的定义是说，规则
+\begin{equation}
+    \begin{aligned} % if you need alignment
+        \frac{J_1\qquad\cdots\qquad J_n}{J} \label{equation:three_one}
+    \end{aligned}
+\end{equation}
+% $$\frac{J_1\qquad\cdots\qquad J_n}{J}$$
+是可以从$\mathcal{R}$推导的：才能在一个对$J$的证明，它是由$\mathcal{R}$再加上将$J_1,\dots,J_n$作为公理组成的。
+
+% 对2.2的引用还没完成
+举例来说，考虑这一与规则(2.2)有关的可推导性断言
+\begin{equation}
+    \begin{aligned} % if you need alignment
+        \alpha \text{nat} \vdash_{(2.2)} \text{succ}(\text{succ}(\alpha)) \text{nat} \label{equation:three_two}
+    \end{aligned}
+\end{equation}
+这个断言对所有$\alpha$的选择都是有效的，推导证明如下：
+\begin{equation}
+    \begin{aligned} % if you need alignment
+        \frac{\frac{\alpha \text{nat}}{\text{succ}(\alpha) \text{nat}}}{\text{succ}(\text{succ}(\alpha)) \text{nat}} \label{equation:three_three}
+    \end{aligned}
+\end{equation}
+这一证明将规则2.2组合，开始时将$\alpha \text{nat}$作为一个公理，并且以$\text{succ}(\text{succ}(\alpha)) \text{nat}$结束。
+等价的，(\ref{equation:three_two})的有效性性也可以这样表示：
+$$\frac{\alpha \text{nat}}{\text{succ}(\text{succ}(\alpha)) \text{nat}}$$
+
+这可以直接从可推导性的定义中推出：可推导性相对于扩展规则是稳定的。
+
+\begin{theorem}[稳定性]\label{theorem:stability}
+    如果 $\Gamma \vdash_{\mathcal{R}} J$ 则 $\Gamma \vdash_{\mathcal{R} \cup \mathcal{R}'} J$
+\end{theorem}
+\begin{proof}
+    任何从$\mathcal{R}\cup \Gamma$对$J$的推导也是从$(\mathcal{R} \cup \mathcal{R}') \cup \Gamma$的推导，因为任意一条$\mathcal{R}$中的规则也是$\mathcal{R} \cup \mathcal{R}'$中的一条规则。
+    \end{proof}
+可推导性享有其定义所遵循的许多结构性质，而且这与所讨论问题中的$\mathcal{R}$无关。
+
+\paragraph{自反性Reflexivity} 
+每一条断言都是它自己的结论：$\Gamma,J\vdash_{\mathcal{R}}J$。
+每条假设都能证明自己。
+
+\paragraph{弱化Weakening} 如果$\Gamma \vdash_{\mathcal{R}}J$，那么$\Gamma,K\vdash_{\mathcal{R}}J$。蕴含不受证明过程中未使用过的规则影响。
+\paragraph{传递性Transitivity} 如果 $\Gamma,K\vdash_{\mathcal{R}}J$ 并且 $\Gamma \vdash_{\mathcal{R}} K$，那么 $\Gamma \vdash_{\mathcal{R}} J$。如果我们用一个公理的推导来代替这个公理，得到的结果就是在没有这个假设的情况下的推导。
+
+
+自反性直接来源于可推导性的含义。弱化则直接源自可推导性的定义。传递性则可在第一个条件下通过规则归纳来证明。
+
+\subsection{可接受性Admissibility}
+
+可接受性，写记作$\Gamma \vDash_{\mathcal{R}} J$，是一种较弱的假设断言形式，它表示着$\vdash_{\mathcal{R}} \Gamma$能够证明$\vdash_{\mathcal{R}} J$。
+也就是说，当$ \Gamma $中的假设都可以从规则集$ \mathcal {R} $推导时，结论$ J $可以从规则集$ \mathcal {R} $中推导出来。
+特别的，如果$\Gamma$中的假设相对于$\mathcal{R}$是无关的，那么$\vdash_{\mathcal{R}} J$这一推断是显然为真的。
+定义$J_1,\dots,J_k\vDash_\mathcal{R} J $的一个等价方法是表明如下规则相对于$\mathcal{R}$来说是可接受的：
+\begin{equation}
+    \begin{aligned}
+        \frac{J_1 \qquad \dots \qquad J_n}{J}
+    \end{aligned}
+\end{equation}
+
+给定任意一个使用$ \mathcal{R} $中的规则对$ J_1，\dots，J_n $的推导，我们可以建立一个使用$ \mathcal {R} $中的规则对$ J $的推导。
+
+举个例子，这样一个可接受性断言是有效的：
+\begin{equation}
+    \begin{aligned}
+        \text{succ}(\alpha) \text{even} \vDash_{2.8} \alpha \text{odd} \label{equation:three_six}
+        % 引用2.8
+    \end{aligned}
+\end{equation}
+因为从规则（2.2）得到的$ \text{succ}(\alpha) \text{even} $的任何推导必须包含来自相同规则的$ \alpha \text{odd} $的子推导，从而可以证明结论。
+上述事实可以通过对规则（2.8）应用归纳法证明。
+上述定理（\ref{equation:three_six}）有效也可以通过说如下规则相对于规则（2.8）是可以接受的：
+\begin{equation}
+    \begin{aligned}
+        \frac{\text{succ}(\alpha) \text{even}}{\alpha \text{odd}}
+    \end{aligned}
+\end{equation}
+
+与可推导性相比，可接受性断言在对规则的扩展时并不稳定。
+举例来说，如果我们用如下公理来扩充规则（2.8）：
+\begin{equation}
+    \begin{aligned}
+        \frac{ }{\text{succ}(\text{zero}) \text{even}}
+    \end{aligned}
+\end{equation}
+那么规则（3.6）是不可接受的，因为没有任何一个规则的组合能够推导出$\text{zero} \text{odd}$。
+可接受性对于归纳定义中缺少哪些规则同样敏感，因为它是存在于那些规则中的。
+
+可推导性的结构特性确保了可推导性比可接受性更强。
+
+% theorem 3.2
+\begin{theorem}[]
+    如果 $\Gamma \vdash_{\mathcal{R}} J$ 那么 $\Gamma \vDash_{\mathcal{R}} J$
+\end{theorem}
+
+\begin{proof}
+    不断应用可推导性的传递性，我们可以得到：
+    如果 $\Gamma \vdash_{\mathcal{R}} J$ 并且 $\vdash_{\mathcal{R}} \Gamma$, 
+    那么 $\vdash_{\mathcal{R}} J$.
+\end{proof}
+
+至于为什么逆命题是错误的，我们可以注意到
+$$\text{succ}(\text{zero}) \text{even} \nvdash_{(2.8)} \text{zero} \text{odd}$$
+当把左边添加为规则（2.8）的公理时，对右边的推导是不存在的。
+然而，相应的可接受性断言
+$$\text{succ}(\text{zero}) \text{even} \vDash_{(2.8)} \text{zero} \text{odd}$$
+是有效的，因为这个假设是错误的：没有从规则（2.8）中无法推导出$\text{succ}(\text{zero}) \text{even}$。
+即便如此，如下这一可推导性是有效的：
+$$\text{succ}(\text{zero}) \text{even} \vdash_{(2.8)} \text{succ}(\text{succ}(\text{zero})) \text{odd} $$
+因为通过组合规则（2.8），我们可以从左侧推导出右侧。
+
+可接受性的前提可以被认为是一种数学函数，它将假设的证明$ \triangledown_1，\dots，\triangledown_n $转换到结论$ \triangledown $的一个证明。
+因此，可接受性断言与可推导性拥有一样的结构特性，因此它也是假设性断言的一种形式：
+
+\paragraph{自反性Reflexivity} 
+如果$J$能够从原来的规则中推导，那么$J$也可以从原来的规则中推导出来？？$J \vDash_{\mathcal{R}} J$
+
+\paragraph{弱化Weakening} 
+如果在$ \Gamma $中的每个断言都可以从原始规则中推导出来这一条件下$ J $可以从原始规则中推导出来，那么$ \ Gamma $和$ K $可以从原始规则推导出来也必定能够推出$ J $是可推导的：如果 $\gamma \vDash_{\mathcal{R}} J$，那么$\Gamma,K \vDash_{\mathcal{R}} J$。
+
+\paragraph{传递性Transitivity} 
+如果 $$\Gamma,K \vDash_{\mathcal{R}} J$$ 并且 $\Gamma \vDash_{\mathcal{R}} K$，那么 $\Gamma \vDash_{\mathcal{R}} J$。 如果$\Gamma$里的断言都可推导，那么$K$的也可推导，因此根据假设，$\Gamma,K$的也可推导，从而$J$可推导。
+
+\begin{theorem}[]
+    可接受性断言$\Gamma \vDash_{\mathcal{R}} J$享有蕴含的结构性质。
+\end{theorem}
+\begin{proof}
+    从可接受性的定义立即可以看出，如果假设可以相对于$ \mathcal{R} $导出，那么结论也是如此。
+\end{proof}
+
+如果某个规则$r$对于规则集$ R $是可接受的，则$ \vdash_{\mathcal{R},r} J $与$ \vdash_{\mathcal{R}} J $等价。
+如果有$\vdash_{\mathcal{R}} J$，那么明显有$\vdash_{\mathcal{R},r} J$（只需要忽略$r$即可）。
+相反的，如果$\vdash_{\mathcal{R},r} J$，那么我们可以用$\mathcal{R}$中的规则来扩展$r$的使用。
+我们对$ \mathcal{R},r $应用规则归纳法，从扩展的规则集$ \mathcal{R},r $中的每一个推导都可以转化为从$ \mathcal{R} $的推导。
+因此，当我们希望证明某个断言是从$ \mathcal{R}，r $可推导的，如果$ r $相对$ \mathcal{R} $是可接受的，那么将有$ \mathcal{R} $完全可以决定这一断言，不再需要$r$，因为它的可接受性表明规则$ r $的结果已经隐含在了规则$ \mathcal{R} $的结果中。
+
+\section{假设归纳定义Hypothetical Inductive Definitions}
+丰富归纳定义的概念，以允许具有可推导性断言的规则作为前提和结论，这是很有用的。
+这样我们可以引入局部假设，这些假设仅适用于推导特定前提，并且还允许我们基于在应用规则时有效的全局假设来约束推论。
+
+一个归纳假设定义由以下形式的假设性规则组成：
+% 3.9
+\begin{equation}
+    \begin{aligned}
+        \frac{\Gamma \Gamma_1 \vdash J_1 \qquad \dots \qquad \Gamma \Gamma_n \vdash J_n}{\Gamma \vdash J} \label{equation:three_nine}
+    \end{aligned}
+\end{equation}
+
+假设$ \Gamma $是规则的全局假设，而假设$ \Gamma_i $是规则的$ i $th前提的局部假设。
+不规范的说，这条规则指出，当每个$ J_i $是$ \Gamma $与假设$ \Gamma_i $的可推导结果时，$ J $是$ \Gamma $的一个可推导的结果。
+因此，证明$ J $可以从$ \Gamma $推导出来的一种方式是反过来证明每个$ J_i $可以从$ \Gamma \Gamma_i $推导。
+每个前提的推导都涉及到一个“上下文转换”，在这个转换中我们用全局假设扩展了前提的局部假设，建立了一套新的全局假设用于该推导过程中。
+我们要求假设的归纳定义中的所有规则都是统一的，因为它们适用于所有的全局环境。
+这样的统一性保证了一条规则可以被隐式表达（局部形式）
+% 3.10
+\begin{equation}
+    \begin{aligned}
+        \frac{\Gamma_1 \vdash J_1 \qquad \dots \qquad \Gamma_n \vdash J_n}{J}
+    \end{aligned}
+\end{equation}
+在这个形式中，全局上下文都被隐藏，因为这条规则适用于任意选择的全局假设。
+
+假设的归纳定义被认为是对有限的基本断言集合$ \Gamma $和基本断言$ J $组成的规范的可推导性断言$ \Gamma \vdash J $的普通归纳定义。
+一组假设规则$ \mathcal{R} $定义了在统一规则$ \mathcal{R} $下（结构性）和完备的最强正式可推导性断言。
+结构性意味着如下规则必须完备的导出（正式）的可推导性断言：
+% 3.11
+\begin{subequations}
+    \begin{align}
+        \frac{}{\Gamma,J\vdash J} \label{equation:three_eleven_a}
+    \end{align}
+    \begin{align}
+        \frac{\Gamma \vdash J}{\Gamma,K\vdash J} \label{equation:three_eleven_b}
+    \end{align}
+    \begin{align}
+        \frac{\Gamma \vdash K \qquad \Gamma,K\vdash J}{\Gamma\vdash J} \label{equation:three_eleven_c}
+    \end{align}
+\end{subequations}
+这些规则确保（正式）的可推导性看起来就像一个假设性断言。
+我们使用$\Gamma \vdash_{\mathcal{R}} J$来表示$\Gamma \vdash J$是可以从$\mathcal{R}$推导的。
+
+假设规则归纳的原则就是将规则归纳的原则应用到形式假设断言上。
+因此如果想证明在$\Gamma \vdash_{\mathcal{R}} J$的情况下有$\mathcal{P}(\Gamma \vdash J)$，我们可以证明$\mathcal{R}$和结构性规则能够完备的推导出$\mathcal{P}$。
+因此，对于满足形式（\ref{equation:three_nine}）的每个规则，无论它是结构性还是它属于$ \mathcal{R} $，我们都必须证明：
+$$\text{if} \mathcal{P}(\Gamma \Gamma_1 \vdash J_1) \text{and} \dots \text{and} \mathcal{P}(\Gamma \Gamma_n \vdash J_n), \text{then} \mathcal{P}(\Gamma \vdash J)$$
+% ref chapter 2 here
+但这只是对第2章给出的规则归纳原则的一个重申，它专用于正式的可推导性断言$ \Gamma \vdash J $。
+
+% ref chapter 3 here
+在实践中，我们通常用Section 3.1.2描述的方法省略结构规则。
+通过证明结构规则是可接受的，任何通过规则归纳的证明可以仅仅关注$ \mathcal{R} $中的规则。
+如果假设归纳定义的所有规则都是一致的，则结构规则（\ref{equation:three_eleven_b}）和（\ref{equation:three_eleven_c}）显然是可接受的。
+通常，规则（\ref{equation:three_eleven_a}）必须作为规则明确地被假定，而不是根据其他规则证明是其可接受的。
+
+\section{一般性断言General Judgement}
+
+一般性断言（编码）那些处理断言中变量的规则。
+就像在一般的数学中一样，一个变量被视为一个未知的，包含了一组指定的对象的范围。
+一个一般性断言是指，断言适用于将断言中指定变量替代为任何对象。
+另一种形式的一般断言（编码）对符号参数的处理。
+参数化断言表达“对断言中指定符号的新的重命名”的一般性。
+为了追踪一个推导中的活动变量与符号，我们用  $\Gamma \vdash_{\mathcal{R}}^{\mathcal{U};\mathcal{X}} J $来表示$J$根据规则集$\mathcal{R}$可以从$\Gamma$推导出来，这个推导过程中包含了符号集$\mathcal{U}$和变量集$\mathcal{X}$中的任意元素。
+
+规则的一致性的概念必须扩展到要求：在重命名和替换变量下规则是完备的，并在重命名参数下规则是完备的。
+更准确地说，如果$ \mathcal{R} $是一组包含$ s $类的自由变量$ x $的规则，那么它也必须包含所有可能的替换实例：替换$ x $为任意的$ s $类的$ a $（包括那些包含其他自由变量的）。
+类似的，如果$ \mathcal{R} $包含带有参数$ u $的规则，那么它必须包含通过将$ u $重新命名为相同类型的任何$ u'$而获得的所有规则实例。
+统一性排除了声明变量的规则，也没有说明该变量的所有可能的实例。
+它还排除了为参数声明规则，也没有说明该参数的所有可能的重命名。
+
+一般可推导性断言是这样定义的：
+$$\mathcal{Y} \mid \Gamma \vdash_{\mathcal{R}}^{\mathcal{X}} J \qquad \text{iff} \qquad \Gamma \vdash_{\mathcal{R}}^{\mathcal{XY}}  J$$
+这其中$\mathcal{Y} \cap \mathcal{X}=\empty$. 
+一般可推导性的前提由一个包含变量$ \mathcal{XY} $的一般性推导$ \triangledown $组成。
+只要规则是统一的，$ \mathcal{Y} $的选择就不重要了，（从某种意义上来说很快就会解释）。
+
+举例来说，一般性推导$\triangledown$：
+$$\frac{\frac{\frac{}{x \text{nat}}}{\text{succ} (x) \text{nat}}} {\text{succ} (\text{succ} (x)) \text{nat}}$$
+是这一断言的前提：
+$$x \mid x \text{nat} \vdash_{(2.2)}^{\mathcal{X}} \text{succ} (\text{succ} (x)) \text{nat}$$
+其中$x \notin \mathcal{X}$。
+只要所有规则都是统一的，选择任何其他的$ x $都可以。
+
+如果$ \mathcal{R} $是统一的，则一般的可推导性断言享有能够控制变量行为的以下结构属性：
+
+\paragraph{扩散Proliferation} 
+如果 $\mathcal{Y} \mid \Gamma \vdash_{\mathcal{R}}^{\mathcal{X}} J$，那么$\mathcal{Y}, y \mid \Gamma \vdash_{\mathcal{R}}^{\mathcal{X}} J$.
+
+\paragraph{重命名Renaming} 
+如果$\mathcal{Y}, y \mid \Gamma \vdash_{\mathcal{R}}^{\mathcal{X}} J$，
+那么对于任意的$y' \notin \mathcal{XY}$都有$\mathcal{Y},y' \mid [y \leftrightarrow y'] \Gamma \vdash_{\mathcal{R}}^{\mathcal{X}} [y \leftrightarrow y'] J$
+
+\paragraph{置换Substitution} 
+如果$\mathcal{Y}, y \mid \Gamma \vdash_{\mathcal{R}}^{\mathcal{X}} J$并且$\alpha \in \mathcal{B}[\mathcal{XY}]$，那么$\mathcal{Y} \mid [\alpha / y] \Gamma \vdash_{\mathcal{R}}^{\mathcal{X}} [\alpha / y] J$
+
+扩散是通过对规则方案的解释来保证的：这包括所有可能的扩张。
+重命名则是嵌入在一般性断言的意义内的。
+替代原则意味着替代元素与被替换变量具有相同的类别。
+
+参数可推导性的定义类似于一般可推导性，尽管它是通过对符号进行一般化而不是变量。
+参数可推导性是这样定义的：
+$$ \mathcal{V} \parallel \mathcal{Y} \mid \Gamma \vdash_{\mathcal{R}}^{\mathcal{U};\mathcal{X}} J \qquad \text{iff} \qquad \mathcal{Y} \mid \Gamma \vdash_{\mathcal{R}}^{\mathcal{UV};\mathcal{X}} J$$
+
+其中$\mathcal{V} \cap \mathcal{U} = \empty$。
+
+参数可推导性的前提由一个含有符号$\mathcal{V}$的推导$\triangledown$组成。
+$ \mathcal{R} $的一致性确保任何对参数名称的选择与其他选择是一样的。推导对于重命名是稳定的。
+
+\section{一般性归纳定义Generic Induction Definitions}
+一般性归纳定义允许对规则的前提进行一般的假设性断言，其结果是在这些前提内增加变量以及规则。
+一般性规则的形式如下
+% 3.12
+\begin{equation}
+    \begin{aligned}
+        \frac{\mathcal{YY}_1 \mid \Gamma \Gamma_1 \vdash J_1 \qquad \dots \qquad \mathcal{YY}_n \mid \Gamma \Gamma_n \vdash J_n}{\mathcal{Y} \mid \Gamma \vdash J} \label{equation:three_twelve}
+    \end{aligned}
+\end{equation}
+变量集$\mathcal{Y}$是当前推理的全局变量集。对每个$1 \le i \le n$，变量集$\mathcal{Y}_i$是第$i$个前提的局部变量集。
+在大多数情况下，规则是对于所有可能的全局变量和全局假设的选择来说的。
+这样的规则可以用如下隐式的形式给出：
+\begin{equation}
+    \begin{aligned}
+        \frac{\mathcal{Y}_1 \mid \Gamma_1 \vdash J_1 \qquad \dots \qquad \mathcal{Y}_n \mid \Gamma_n \vdash J_n}{J}
+    \end{aligned}
+\end{equation}
+
+一般性的归纳定义只是对一类满足$ \mathcal{Y} \mid \Gamma \vdash J$这样形式的（正式）一般性断言的普通的归纳定义。
+（正式）的一般性断言由对变量的重命名确定，因此第二个断言被认为与应用了任一个重命名$\rho : \mathcal{Y} \leftrightarrow \mathcal{Y}'$的断言$\mathcal{Y}' \mid \widehat{\rho}(\Gamma) \vdash \widehat{\rho}(J) $是相同的。
+$\rho : \mathcal{Y} \leftrightarrow \mathcal{Y}'$.
+如果$\mathcal{R}$是一个一般性规则的集合，我们用$\mathcal{Y} \mid \Gamma \vdash_{\mathcal{R}} J$来表示$\mathcal{Y} \mid \Gamma \vdash J$这一（正式）的一般性断言是可以从$\mathcal{R}$推导出来的。
+
+当针对一组一般性规则时，规则归纳原则告诉我们，要想证明$\mathcal{P}(\mathcal{Y} \mid \Gamma \vdash J)$在$\mathcal{Y} \mid \Gamma \vdash_{\mathcal{R}} J$时成立，我们只需要证明$\mathcal{P}$相对于$\mathcal{R}$是完备的（$\mathcal{R}$能完全决定$\mathcal{P}$）。
+特别的，针对$\mathcal{R}$中的每条满足形式（\ref{equation:three_twelve}）的规则，我们必须证明：
+
+$$\text{if} \mathcal{P} (\mathcal{Y}\mathcal{Y}_1 \mid \Gamma \Gamma_1 \vdash J_1) \dots \mathcal{P} (\mathcal{Y} \mathcal{Y}_n \mid \Gamma \Gamma_n \vdash J_n) \text{then} \mathcal{P} (\mathcal{\mathcal{Y}} \mid \Gamma \vdash J)$$
+% ref chapter 1
+
+通过（识别约定）（在第1章中陈述），属性$ \mathcal{P} $必须在（正式）的一般性断言中遵循对变量的重命名。
+
+为确保（正式）的一般性断言与一般断言行为一致，我们必须始终确保以下结构规则可以被接受
+
+\begin{subequations}
+    \begin{align}
+        \frac{}{\mathcal{Y} \mid \Gamma,J \vdash J} \label{equation:three_fourteen_a}
+    \end{align}
+    \begin{align}
+        \frac{\mathcal{Y} \mid \Gamma \vdash J}{\mathcal{Y} \mid \Gamma,J' \vdash J} \label{equation:three_fourteen_b}
+    \end{align}
+    \begin{align}
+        \frac{\mathcal{Y} \mid \Gamma \vdash J}{\mathcal{Y},x \mid \Gamma \vdash J} \label{equation:three_fourteen_c}
+    \end{align}
+    \begin{align}
+        \frac{\mathcal{Y},x' \mid [x \Leftrightarrow x'] \Gamma \vdash [x \Leftrightarrow x'] J}{\mathcal{Y},x \mid  \Gamma \vdash J} \label{equation:three_fourteen_d}
+    \end{align}
+    \begin{align}
+        \frac{\mathcal{Y} \mid \Gamma \vdash J \qquad \mathcal{Y} \mid \Gamma,J \vdash J'}{\mathcal{Y} \mid \Gamma \vdash J'} \label{equation:three_fourteen_e}
+    \end{align}
+    \begin{align}
+        \frac{\mathcal{Y},x \mid \Gamma \vdash J \qquad \alpha \in \mathcal{B}[\mathcal{Y}]}{\mathcal{Y} \mid [\alpha / x] \Gamma \vdash [\alpha / x] J} \label{equation:three_fourteen_f}
+    \end{align}
+\end{subequations}
+
+规则（\ref{equation:three_fourteen_a}）的可接受性在实践中是通过显示的包含它来保证的。
+规则（\ref{equation:three_fourteen_b}）与（\ref{equation:three_fourteen_b}）的可接受性能通过每条一般性规则的一致性保证，因为我们可以将增加的变量$x$同化为全局变量，将增加的假设$J$同化为全局假设。
+规则（\ref{equation:three_fourteen_d}）的可接受性是通过对（正式）的一般性断言的（识别约定）来保证的。
+规则（\ref{equation:three_fourteen_f}）则必须针对每个归纳定义显示的验证。
+
+一般性归纳定义的概念也可以扩展到参数断言。
+简要的说，规则是在这样形式的（正式）参数断言上定义的：$\mathcal{V} \parallel \mathcal{Y} \mid \Gamma \vdash J$，其中$\mathcal{V}$是符号集，$\mathcal{Y}$是变量集。
+这种正式的断言通过重命名其变量及其符号来唯一确定，以确保意义独立于变量和符号名称的选择。
+
+\section{总结Notes}
+
+蕴含与一般性的概念是逻辑与程序语言的基础。
+这里给出的公式来源于（引用文献）。
+假设性和一般性推理在AUTOMATH语言中和LF逻辑框架中被合并成一个概念。
+这些系统允许假设性和一般性断言的任意嵌套组合，而目前的应用只考虑基本断言形式的一般假设性断言。
+另一方面，我们在这里考虑了符号以及变量，这在以前是没有的。
+允许动态创建“新”对象的语言需要参数化断言。
+
+\section*{练习}
+
+\paragraph{3.1} 
+\textit{组合子}由规则集$\mathcal{C}$归纳定义如下：
+\begin{subequations}
+    \begin{align}
+        \frac{}{s \text{comb}} 
+    \end{align}
+    \begin{align}
+        \frac{}{k \text{comb}} 
+    \end{align}
+    \begin{align}
+        \frac{\alpha_1 \text{comb} \qquad \alpha_2 \text{comb}}{\text{ap}(\alpha_1 ; \alpha_2) \text{comb}} 
+    \end{align}
+\end{subequations}
+给出一个组合子的长度的归纳定义，其定义为其中$S$，$K$的出现次数。
+
+\paragraph{3.2} 
+一般性断言
+$$x_1, \dots, x_n \mid x_1 \text{comb}, \dots, x_n \text{comb} \vdash_{\mathcal{C}} A \text{comb}$$
+表明$A$是一个可能涉及到变量$x_1,\dots,x_n$的组合子。
+通过对其含义的第一个假设的推导进行归纳来证明如果$x \mid x \text{comb} \vdash_{\mathcal{C}} \alpha_2 \text{comb}$并且$\alpha_1 \text{comb}$，
+那么有$[\alpha_1 / x] \alpha_2 \text{comb}$。
+
+\paragraph{3.3}
+组合子的等价是这样表达的：$A\equiv B$，它通过规则集$\mathcal{E}$与扩展$\mathcal{C}$定义如下：
+\begin{subequations}
+    \begin{align}
+        \frac{\alpha \text{comb}}{\alpha \equiv \alpha} 
+    \end{align}
+    \begin{align}
+        \frac{\alpha_2 \equiv \alpha_1}{\alpha_1 \equiv \alpha_2} 
+    \end{align}
+    \begin{align}
+        \frac{\alpha_1 \equiv \alpha_2 \qquad \alpha_2 \equiv \alpha_3}{\alpha_1 \equiv \alpha_3} 
+    \end{align}
+    \begin{align}
+        \frac{\alpha_1 \equiv \alpha_1' \qquad \alpha_2 \equiv \alpha_2'}{\alpha_1 \alpha_2 \equiv \alpha_1'\alpha_2'} 
+    \end{align}
+    \begin{align}
+        \frac{\alpha_1 \text{comb} \qquad \alpha_2 \text{comb}}{\text{k} \alpha_1 \alpha_2 \equiv \alpha_1} 
+    \end{align}
+    \begin{align}
+        \frac{\alpha_1 \text{comb} \qquad \alpha_2 \text{comb} \qquad \alpha_3 \text{comb}}{\text{s} \alpha_1 \alpha_2 \alpha_3 \equiv (\alpha_1 \alpha_3)(\alpha_2 \alpha_3)} 
+    \end{align}
+\end{subequations}
+最后两条式子暂时看起来可能有点疑惑，但是你很快就能理解他们。现在，证明
+$$x \mid x \text{comb} \vdash_{\mathcal{C} \cup \mathcal{E}} \text{skk} x \equiv x$$
+
+\paragraph{3.4}
+证明如果$x \mid x \text{comb} \vdash_{\mathcal{C}} \alpha \text{comb}$，那么存在一个组合子$\alpha'$，记作$[x]\alpha$，称为括号抽象，满足
+$$x \mid x \text{comb} \vdash_{\mathcal{C} \cup \mathcal{E}} \alpha' x \equiv \alpha$$。
+从而，根据练习3.2，如果$\alpha'' \text{comb}$，那么
+$$([x] \alpha) \alpha'' \equiv [\alpha'' / x] \alpha$$。
+提示：归纳地定义这样一个断言：
+$$x \mid x \text{comb} \vdash \text{abs}_x \alpha$$
+记为$\alpha'$，其中$x \mid x \text{comb} \vdash \alpha \text{comb}$。然后说明它定义的$\alpha'$是一个$x$与$\alpha$的二元函数。
+3.3中最后两式的意义将在证明过程中变得清晰。
+
+\paragraph{3.5}
+证明3.4中的括号抽象是没有结合律的：展示$a$和$b$使得$a \text{comb}$，
+$$x y \mid x \text{comb} y \text{comb} \vdash_{\mathcal{C}} b \text{comb} $$
+以及$[a/y]([x]b) \neq [x] ([a / y]b)$。
+提示：考虑$b$就是$y$的情况。
+
+提出一个修改过的括号抽象的定义使得它是满足结合律的，并证明（上式改为等于号）。
+
+\paragraph{3.6}
+考虑集合$\mathcal{B}[\mathcal{X}]$，它由操作符op（类型为\text{(Exp,Exp)Exp}）与操作符$\lambda$（类型为\text{(Exp.Exp)Exp}）产生，并且可能与$\mathcal{X}$中的变量有关（他们都是\text{Exp}类型的）。
+给出$b$完备的归纳定义，这表示$b$中没有$\mathcal{X}$中任一变量的自由出现。
+提示：给出如下断言的归纳定义：
+$$x_1,\dots,x_n \mid x_1 \text{closed}, \dots , x_n \text{closed} \vdash b \text{closed} $$
+来说明$\lambda$操作符对变量的绑定。
+一个变量是完备的假设似乎是自相矛盾的，因为一个变量在本身显然是自由的。解释为什么这不是一个反例（通过仔细地检查假设性与一般性断言的意义）。

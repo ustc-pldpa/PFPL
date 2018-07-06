@@ -1,0 +1,235 @@
+
+\chapter{类型抽象和类型类}
+接口是指明客户端代码的权限和实现者责任的约定。作为行为的规范，接口是一种类型。原则上，任何类型都可以作为接口，但实际上通常将代码拆分成由可分离和可重用组件组成的\textit{模块}。接口指定了客户端期望的模块的行为，并强制要求实现者实现它们。它是平衡分离和聚合之间的紧张关系的支点。模块通常应该具有可以单独理解的良好定义的行为，但同样重要的是，各个模块应该能轻易地组合起来，以构成一个整体。
+
+一个基本问题是，模块的类型是什么？换句话说，接口需要什么样的形式？一个长久以来的想法是，接口是具有指定类型的函数和过程的带标签的元组。元组的字段类型通常称为\textit{函数头}，因为它声明了函数的参数和返回值的类型。使用这种形式的接口称为\textit{过程抽象}，因为它将模块之间的依赖限制在一组指定的过程中。我们可以将这个元组的字段视为虚拟机的指令集。客户端在代码中使用这些指令，实现者提供它们的实现。
+
+过程抽象的问题在于它没有提供尽可能多的隔离。例如，实现字典的模块必须在操作的类型中公开树的确切表示形式，即递归类型（或者在更底层的语言中，包含指向自身类型的指针的结构体）。但客户不应该依赖这种表示：抽象的目的是摆脱指针。正如第十七章所讨论的那样，解决方案是扩展抽象机器的隐喻来向客户隐藏机器的内部状态。在字典的例子里，字典作为二叉查找树的表示被存在性量化隐藏。这个概念被称为\textit{类型抽象}，因为底层数据的类型（抽象机器的状态）是隐藏的。
+
+类型抽象是限制模块之间依赖关系的强大方法。它在许多情况下非常有用，但不是普遍适用的。在模块边界上显示类型信息通常是有用的。一个典型的例子是字典的实现，它是从键到值的映射。为了使用二叉搜索树来实现字典，我们要求键类型是全序的。字典抽象并不依赖于键的确切类型，但是需要键类型可以提供比较操作。\textit{类型类}是这种要求的规范。例如，可比较类型的类型类指定类型$t$以及类型为$(t \times t) \rightarrow$ \texttt{bool}的操作\texttt{leq}来比较它们。从表面上看，这样的规范看起来像一个类型抽象，因为它指定了一个类型以及一个或多个操作，但有一个重要的区别，即类型$t$对客户端不是隐藏的。如果类型$t$对客户端是隐藏的，客户端将只能使用\texttt{leq}来比较键，但无法获得键的具体值来进行比较。与类型抽象相比，类型类不是一个详细说明类型上的操作的规范，而是一个要求类型定义了某些操作（例如比较）的约束。这种约束对类型上可能定义的其他操作不作限制。
+
+类型抽象和类型类是模块类型的一般概念的极端情况，我们将在本章中详细地讨论它们。这个话题的关键的想法是跨模块边界的类型信息的\textit{受限的暴露}。类型抽象是不透明的；类型类是透明的。这些都是\textit{半透明}的例子，它是由存在类型（第十七章），子类型（第二十四章），单一类别和子类别（第四十三章）组合而成的。然而，与第十七章不同的是，我们将区分被称为\textit{签名}的模块类型与普通值类型。这种区分并不是必须的，但是我们一开始就将两个概念分开，并将在阐明基础的概念之后再讨论如何把两个概念统一起来。这对于读者理解内容是有帮助的。
+
+\section{类型抽象}
+
+类型抽象是以类似于第十七章中描述的存在类型量化的形式捕获的。例如，键类型为$\tau_{key}$、值类型为$\tau_{val}$的字典实现了由$\llbracket t::T;\tau_{dict}\rrbracket$定义的签名$\sigma_{dict}$，其中$\tau_{dict}$是带标签的元组类型$$\langle \mathsf{emp} \hookrightarrow t,\mathsf{ins} \hookrightarrow \tau_{key} \times \tau_{val} \times t \rightarrow t, \mathsf{fnd} \hookrightarrow \tau_{key} \times t \rightarrow \tau_{val}\; \mathsf{opt} \rangle$$在$\tau_{dict}$中出现并且由$\sigma_{dict}$约束的类型变量$t$是字典的抽象类型，在字典上，我们定义了三个操作$\mathsf{emp}$，$\mathsf{ins}$和$\mathsf{fnd}$。 $\tau_{val}$类型对于上述讨论来说是不重要的，因为定义在字典上的操作对于与键相关联的值没有限制。然而，类型$\tau_{key}$必须是固定的类型，比如$\mathsf{str}$，并且支持一些操作（比如比较）。注意，签名$\sigma_{dict}$仅指定字典是某种类型的值，它提供操作$\mathsf{emp}$，$\mathsf{ins}$和$\mathsf{fnd}$，这些操作的类型由$\tau_{dict}$确定。
+
+签名$\tau_{dict}$的实现是$\llbracket\rho_{dict};e_{dict}\rrbracket$形式的\textit{结构体}，其中$\rho_{dict}$是字典的具体表示，$e_{dict}$是一个类型为$[\rho_{dict}/t]\tau_{dict}$的带标签的元组。该元组具有以下形式$$\langle \mathsf{emp} \hookrightarrow ... ,\mathsf{ins} \hookrightarrow ... ,\mathsf{fnd}	 \hookrightarrow ... \rangle$$
+
+省略的部分根据选择的表示类型$\rho_{dict}$实现字典操作时，可以利用类型$\tau_{key}$的值上的比较操作，因为我们已经假定在该类型上可以进行比较操作。例如，类型$\rho_{dict}$可以是定义平衡二叉搜索树的递归类型（如红黑树）。字典上定义的操作在实现时，面向的是字典底层的表示形式，即上文提到的树，这就像一个存在类型的包（参见第17章）。我们对于$\tau_{key}$的假设是暂时的，并将在第44.2节被解除。
+
+为了确保字典的表示对客户是隐藏的，结构体$M_{dict}$用签名$\sigma_{dict}$密封起来，以获得模块$$M_{dict} \upharpoonleft \sigma_{dict}$$密封的效果是保证了$M_{dict}$传递给客户端的信息只来自于签名$\sigma_{dict}$。特别地，因为$\sigma_{dict}$仅仅指明了类型$t$拥有类别$T$，所以类型$t$是模块$M_{dict}$中的类型$\rho_{dict}$这一点对于客户端来说是不可见的。
+
+模块是一个由静态部分和动态部分组成的\textit{两相对象}，其静态部分是指定类型的构造子，动态部分是指定类型的值。存在两种消去形式来提取模块的静态和动态部分。它们分别是构造子形式和表达式形式。更准确地说，构造子$M \cdot s$代表$M$的静态部分，表达式$M \cdot d$代表其动态部分。根据反演原理，如果一个模块$M$有引入形式，那么$M \cdot s$应该等价于M的静态部分。例如，$M_{dict} \cdot s$应该与$\rho_{dict}$等价。
+
+但考虑一个模块的静态部分，其形式为$(M_{dict} \upharpoonleft \sigma_{dict}) \cdot s$。因为密封隐藏了抽象类型的表示，所以此构造子不应等价于$\rho_{dict}$。如果$M_{dict}^{\prime}$是$\sigma_{dict}$的另一个实现，那么$(M_{dict}^{\prime} \upharpoonleft \sigma_{dict}) \cdot s$应该等价与$(M_{dict} \upharpoonleft \sigma_{dict}) \cdot s$吗？为了确保类型等价的自反性，当$M$和$M^{\prime}$是等价模块时，该等式应该成立。但是这违反了抽象类型的表示独立性，因为抽象类型的等价性对其实现很敏感。
+
+似乎两个非常基本的概念，类型等价和表示独立之间存在矛盾。摆脱这个难题的方法是\textit{禁止}引用密封模块的静态部分：类型表达式$M \upharpoonleft \sigma \cdot s$被认为是无效的。更一般地说，$M \cdot s$是被禁止的，除非$M$是一个静态部分总是显式的\textit{模块值}。一个显式的结构体是一个模块值，并且和其他模块变量在地位上没有区别（假设模块变量是按值绑定的）。
+
+这种限制的一个影响是密封模块在使用之前必须绑定到变量。因为模块变量是按值绑定的，所以这样做会影响绑定站点的抽象。事实上，我们可能会认为封装是在绑定站点处“发生”的一种计算效应，就像第三十四章中讨论的 Algol 中的绑定操作产生封装命令引起的效应一样。因此，相同密封模块的两个绑定会产生两种抽象类型。类型系统会故意忽略同一模块的两次出现的等价性，以确保他们的表示可以彼此独立地进行更改，而不会破坏任何客户端代码的行为（因为客户端不能依赖他们的等价性，必须将它们视为不同）。
+
+\section{类型类}
+
+类型抽象是限制程序中模块之间依赖关系的重要工具。类型抽象的签名确定客户端可以了解的关于模块的所有信息，抽象类型的值不允许用作其他用途。一个补充的做法是使用签名来部分指定模块的功能。这样的签名叫做一个\textit{类型类}，或一个\textit{视图}，对类型类指定的功能的一个实现就是类型类的一个\textit{实例}。由于类型类的签名仅限制未知模块的最小能力，因此必须有其他方法来处理该类型的值。实现这一目标的方法是暴露而不是隐藏模块静态部分的身份。在这个意义上，类型类是类型抽象的“反面”，但我们将在下面看到它们之间有一个平稳的过渡，由一个子签名的判断来调节。
+
+
+考虑字典的实现作为键实现的客户端。为了使用二叉搜索树来实现字典，唯一的要求是键具有由比较操作给出的全序性质。这个要求可以通过由下式子给出的签名$\sigma_{ord}$来表示。$$\llbracket t::T;\langle \mathsf{leq} \hookrightarrow (t \times t) \rightarrow \mathsf{bool} \rangle \rrbracket$$因为给定的类型可以通过多种方式进行排序，所以必须将排序与类型一起打包以确定键的类型。
+
+字典作为二叉搜索树的实现的形式为$$X:\sigma_{ord} \vdash M_{bstdict}^X:\sigma_{dict}^X$$其中，$\sigma_{dict}^X$是签名$\llbracket t::T;\tau_{dict}^X\rrbracket$，它的主体$\tau_{dict}^X$是元组类型$$\langle \mathsf{emp} \hookrightarrow t ,\mathsf{ins} \hookrightarrow X \cdot s \times \tau_{val} \times t \rightarrow t ,\mathsf{fnd} \hookrightarrow X \cdot s \times t \rightarrow \tau_{val}\; \mathsf{opt} \rangle$$，$M_{bstdict}^X$是一个结构体（这里没有明确给出）使用二叉搜索树实现字典操作\footnote{在本章和接下来的章节中，上标X都表示模块变量$X$可能在标注过的模块和签名中自由出现}。在$M_{bstdict}^X$中，模块$X$的静态和动态部分分别通过写入$X \cdot s$和$X \cdot d$来访问。特别地，键上的比较操作通过投影$X \cdot d \cdot leq$访问。
+
+
+模块变量$X$的签名通过在子签名顺序中指定其签名的上界来表示对键类型的约束。所以绑定到$X$的任何模块都必须提供一种键的类型和对该类型的比较操作。但除此之外，我们没有关于该类型的其他假设，因为这是我们对未知模块$X$的全部了解，字典实现仅依赖这些指定的功能，而没有依赖其他功能。当与定义$X$的模块链接时，具体的实现不需要使用此签名进行密封，但它必须具有一个在子签名关系中不大于它的签名。实际上，签名$\sigma_{ord}$对于封装没有用处，从下面这一例子中很容易看出这一点。假设$M _{natord}: \sigma_{ord}$是通常排序下有序类型类的一个实例。如果我们用$\sigma_{ord}$密封$M_{natord}$，即 $$M_{natord} \upharpoonleft \sigma_{ord}$$，得到的模块是\textit{无用}的，因为我们没有办法去创建键类型的值。
+
+
+我们看到，一个类型类是一个对于已经存在的类型的描述（或视图），并且这并不意味着引入一个新的类型。当我们指定一个比较操作时，我们希望传播$M_{natord}$静态部分的\texttt{nat}的身份，而不是隐藏它。类型等价的传播可以通过单例类别实现（正如第四十三章讨论的那样）。特别地，一个结构最精确，或者说最\textit{主要}的签名是用单例类别暴露的静态部分。在模块$M_{natord}$的例子中，最主要的签名是由下式给出的签名$\sigma_{natord}$$$\llbracket t::S(nat);\mathsf{leq} \hookrightarrow (t \times t) \rightarrow \mathsf{bool} \rrbracket$$
+由等价性（在44.3节中有正式的定义），上式等价于$$\llbracket \_::S(nat);leq \hookrightarrow (nat \times nat) \rightarrow bool \rrbracket$$这样一种等价的推导被称作\textit{等价传递}，因为它传递了类型$t$的身份到它的作用域。
+
+字典的实现$M_{bstdict}^X$需要一个签名为$\sigma_{ord}$的模块$X$，但是模块$M_{natord}$提供的签名是$\sigma_{natord}$。应用第四十三章给出的子类别的规则和签名的协变准则，我们得到一个子签名关系$$\sigma_{natord} <: \sigma_{ord}$$由包容准则，当需要一个$\sigma_{ord}$模块时，可以提供一个签名为$\sigma_{natord}$的模块。因此$M_{natord}$应该被链接到$M_{bstdict}^X$中的$X$上。
+
+把子类型和封装结合的方法提供了一个在类型类和类型抽象间的平滑的层次。$M_{bstdict}^X$的主要签名$\rho_{dict}^X$由下式给出$$\llbracket t::S(\tau_{bst}^X);\langle emp \hookrightarrow t ,ins \hookrightarrow X \cdot s \times \tau_{val} \times t \rightarrow t ,fnd \hookrightarrow X \cdot s \times t \rightarrow \tau_{val}\; opt \rangle \rrbracket$$其中$\tau_{bst}^X$是二叉搜索树的类型，它的键由签名为$\sigma_{ord}$的模块$X$提供。这个签名是之前给出的$\sigma_{dict}$签名的子签名，所以密封模块$$M_{bstdict}^X \upharpoonleft \sigma_{dict}^X$$是良好定义的，并且有类型$\sigma_{dict}^X$，隐藏字典抽象的表示类型。
+
+在链接$X$到$M_{natord}$之后，我们使用子签名断言来传播$M_{natord}$的静态部分的的身份，以指定字典的签名。前面已经提到，字典的实现满足类型$$X:\sigma_{ord} \vdash M_{bstdict}^X : \sigma_{dict}^X$$但是因为$\sigma_{natord} <: \sigma_{ord}$，由逆变性，我们有$$X:\sigma_{natord} \vdash M_{bstdict}^X : \sigma_{dict}^X$$也是一个合法的类型断言。如果$X:\sigma_{natord}$，那么$X \cdot s$等价于\texttt{nat}，因为它有类别$\mathsf{S(nat)}$，所以类型$$X:\sigma_{natord} \vdash M_{bstord}^X:\sigma_{natdict}$$也是合法的。封闭的签名$\sigma_{natdict}$由下式显式地给出$$\llbracket t::T;\langle emp \hookrightarrow t ,ins \hookrightarrow nat \times \tau_{val} \times t \rightarrow t ,fnd \hookrightarrow nat \times t \rightarrow \tau_{val}\; \mathsf{opt} \rangle \rrbracket$$字典的表示被隐藏，但是键是自然数这个信息没有被隐藏。用$\mathsf{nat}$替换$\sigma_{dict}^X$里出现的所有$X \cdot s$，可以消除对$X$的依赖。得到这种类型后，我们可以按照第四十二章的描述将$X$和$M_{natord}$连接起来，得到签名$\sigma_{natdict}$的复合模块$M_{natdict}$，其中的键是由$M_{natord}$指定的自然数。
+
+使用带标签的元组类型来构造子类型是很方便的，可以避免创建指定自然数的标准排序的ad hoc模块。相反，我们可以直接从数字抽象类型的实现中提取所需的模块。例如，$X_{nat}$是签名$\sigma_{nat}$的模块变量，其格式为$$\llbracket t::T;\langle \mathsf{zero} \hookrightarrow t, \mathsf{succ} \hookrightarrow t \rightarrow t, \mathsf{leq} \hookrightarrow (t \times t) \rightarrow \mathsf{bool}, ... \rangle \rrbracket$$元组的字段提供了所有自然数抽象类型的可用的操作。其中包括字典模块所需的比较操作$\mathsf{leq}$。应用第二十四章给出的带标签元组的子类型规则以及签名的协变准则，我们获得子签名关系$$\sigma_{nat} <: \sigma_{ord}$$因此我们可以用包含的方法，将变量$X_{nat}$链接到在字典实现里假设的变量$X$上。子定型负责从抽象类型的自然数中提取所需的\texttt{leq}字段，这表明自然数是有序类型类的一个实例。当然，只有当抽象类型提供的排序方式是自然的时，这种方法才有效。相反，如果我们希望使用另一种排序，那么我们必须通过手动构造$\sigma_{ord}$的实例来定义适当的顺序。
+
+\section{模块语言}
+
+模块语言\textbf{Mod}形式化地定义了前面概述的概念。模块语言的语法分为五个级别：按类型分类的表达式，按类别分类的构造子和按签名分类的模块。表达式和类型这一级别由本书前面介绍的各种语言机制组成，至少包括积类型、和类型和偏函数类型。构造子和类别的级别如第十八章和第四十三章所述，有单例和依赖类别。以下是模块语言的语法。
+
+\newcolumntype{F}{>{$}c<{$}}
+\begin{center}
+    \begin{tabular}{FFFFFl}
+        \mathsf{Sig} & \sigma & ::= & \mathsf{sig}\{\kappa\}(t.\tau) & \llbracket t::\kappa;\tau \rrbracket & 签名 \\
+        \mathsf{Mod} & M & ::= & X & X & 变量 \\
+        & & & \mathsf{str}(c;e) & \llbracket c;e \rrbracket & 结构 \\
+        & & & \mathsf{seal}\;\{\sigma\}(M) & M \upharpoonleft \sigma & 封装 \\
+        & & & \mathsf{let}\;\{\sigma\}(M_1;X.M_2) & (\mathsf{let}\;X\;\mathsf{be}\;M_1\;\mathsf{in}\; M_2):\sigma & 定义 \\
+        \mathsf{Con} & c & ::= & \mathsf{stat}(M) & M \cdot s & 静态部分 \\
+        \mathsf{Exp} & e & ::= & \mathsf{dyn}(M) & M \cdot d & 动态部分 \\
+        
+    \end{tabular}
+\end{center}
+
+
+\textbf{Mod} 语言的静态语义由以下形式的断言给出：
+
+
+\begin{tabular}{Fl}
+    \Gamma \vdash \sigma \;\mathsf{sig} & 良定义的签名 \\
+    \Gamma \vdash \sigma_1 \equiv \sigma_2 & 等价签名 \\
+    \Gamma \vdash \sigma_1 <: \sigma_2 & 子签名 \\
+    \Gamma \vdash M:\sigma & 良定义的模块 \\
+    \Gamma \vdash M \; \mathsf{val} & 模块值 \\
+    \Gamma \vdash e \; \mathsf{val} & 表达式值 \\
+\end{tabular} 
+
+
+我们接受下列三种格式的假言组，而不是将假言分隔开。
+
+\begin{tabular}{Fl}  
+    X:\sigma,X\;\mathsf{val} & 模块值变量\\
+    \mu::\kappa & 构造子变量\\
+    x:\tau,x\;\mathsf{val} & 表达式变量\\
+\end{tabular}
+
+模块和表达式变量总是被视为值以确保类型抽象正确地被执行。相应地，每个模块和表达式变量和它们是值的假言都会出现在$\Gamma$中。为了符号上的便利，我们不会明确陈述与模块和表达式变量是值这样的假设，根据约定，所有这些变量隐含地与这样的假设配对。
+
+
+下面的规则定义了构造，等价和子签名断言。
+\begin{subequations}
+\begin{equation}\label{formation_judgments}
+\frac{\Gamma \vdash \kappa \; \mathsf{kind}\quad\Gamma,u::\kappa \vdash \tau \; \mathsf{type}}{\Gamma \vdash \llbracket u::\kappa;\tau\rrbracket\;\mathsf{sig}}
+\end{equation}
+
+\begin{equation}\label{equivalence_judgments}
+\frac{\Gamma \vdash \kappa_1 \equiv \kappa_2 \quad \Gamma,u::\kappa_1 \vdash \tau_1 \equiv \tau_2}{\Gamma \vdash \llbracket u::\kappa_1;\tau_1 \rrbracket \equiv \llbracket u::\kappa_2;\tau_2\rrbracket}
+\end{equation}
+
+\begin{equation}\label{subsignature_judgments}
+\frac{\Gamma \vdash \kappa_1 <:: \kappa_2 \quad \Gamma,u::\kappa_1 \vdash \tau_1 <: \tau_2}{\Gamma \vdash \llbracket u::\kappa_1;\tau_1 \rrbracket <: \llbracket u::\kappa_2;\tau_2 \rrbracket}
+\end{equation}
+\end{subequations}
+最重要的是，签名在类别和类型的位置上都是协变的：子类别和子类型都被签名的构造所保留。由规则44.1b可得$$\llbracket\mu::S(c);\tau\rrbracket \equiv\llbracket \_::S(c);[ c/\mu] \tau\rrbracket $$更进一步，由44.1c可得$$\llbracket \_::S(c);[ c/\mu] \tau\rrbracket  <: \llbracket \_::T;[c/u] \tau\rrbracket $$并且$$\llbracket \mu::S(c);\tau\rrbracket <:\llbracket \_::T;[c/\mu] \tau\rrbracket $$同理可得$$\llbracket \mu::S(c);\tau\rrbracket <:\llbracket \mu::T;\tau\rrbracket $$但是$\llbracket \mu::S(c);\tau\rrbracket $的超签名根据上述断言是\textit{不可比较}的。
+
+\textbf{Mod}表达式的静态部分下列规则给出：
+\begin{subequations}
+\begin{equation}\label{static_a}
+\frac{}{\Gamma,X:\sigma \vdash X:\sigma}
+\end{equation}
+
+\begin{equation}\label{static_b}
+\frac{\Gamma \vdash c::\kappa \quad \Gamma \vdash e:[c/u] \tau}{\Gamma \vdash \llbracket c;e\rrbracket :\llbracket \mu::\kappa;\tau\rrbracket }
+\end{equation}
+
+\begin{equation}\label{static_c}
+\frac{\Gamma \vdash \sigma\;\mathsf{sig}\quad\Gamma\vdash M:\sigma}{\Gamma \vdash M \upharpoonleft \sigma:\sigma}
+\end{equation}
+
+\begin{equation}\label{static_d}
+\frac{\Gamma\vdash\sigma\; \mathsf{sig}\quad\Gamma\vdash M_1:\sigma_1\quad\Gamma,X:\sigma_1\vdash M_2:\sigma}{\Gamma\vdash(let\;X\;be\;M_1\;M_2):\sigma:\sigma}
+\end{equation}
+
+\begin{equation}\label{static_e}
+\frac{\Gamma\vdash M:\sigma\quad\Gamma\vdash\sigma<:\sigma^{\prime}}{\Gamma \vdash M:\sigma^{\prime}}
+\end{equation}
+\end{subequations}
+在规则44.2b中，总是可以选择$\kappa $作为子类别排序中最精确的$ c $的类别，它唯一地确定了$ c $到构造子的等价性。对于这样的选择，签名$\llbracket  u :: \kappa; \tau\rrbracket $等价于$\llbracket \_:: \kappa; [ c / u]  \tau\rrbracket $，它将模块表达式的静态部分的身份传播到其动态部分的类型中。规则44.2c与包含规则44.2e一起使用以确保$ M $具有指定的签名。
+
+在模块定义上需要签名是\textit{回避问题}的结果。如果语法定义中省略了签名$\sigma $，规则44.2d是完全合理的。但是，省略这些信息会使类型检查复杂化。如果从定义的语法中省略$\sigma $，类型检查器将为定义的主体找到签名$\sigma $，以\textit{回避}模块变量$X$。我们可以假设我们已经为模块$ M_ {1} $找到了一个签名$\sigma_ {1} $，并且在$X$的签名为$\sigma_ {1} $的条件下为模块$ M_ {2} $找到了签名$\sigma_ {2} $。为了找到一个朴素的定义的签名，我们必须找到一个回避$X$的$\sigma_{2} $的超签名$\sigma $。为了确保所有可能的$\sigma $的选择都被考虑在内，我们在子签名关系中找最小的（最精确的）的签名；这称为模块的\textit{主签名}。问题在于可能不存在给定签名的最小超签名，以回避指定的变量（考虑上面带有两个不可比较的超签名的签名的示例，我们可以构造超签名，使其回避子签名中出现的变量$X$）。因此，模块没有主签名，这是类型检查复杂的一个重要因素。为了解决这个问题，我们坚持认为应该让程序员指定回避的超签名$\sigma$来使类型检查器不必要寻找它。
+
+模块提出了一种新的构造子表达式的形式$M \cdot s$，和一个新的值表达式形式$M\cdot d$。这两个操作分别从模块$M$中提取出静态和动态部分。构造规则如下
+\begin{subequations}
+\begin{equation}\label{44_3_a}
+\frac{\Gamma \vdash M \; val \quad \Gamma \vdash M : \llbracket \mu::\kappa;\tau\rrbracket }{\Gamma \vdash M \cdot s::\kappa}
+\end{equation}
+
+\begin{equation}\label{44_3_b}
+\frac{\Gamma \vdash M:\llbracket \_::\kappa;\tau\rrbracket }{\Gamma \vdash M \cdot d::\tau}
+\end{equation}
+\end{subequations}
+
+规则44.3a要求模块表达式$M$必须是一个值，根据以下规则
+\begin{subequations}
+\begin{equation}\label{44_4_a}
+\frac{}{\Gamma,X:\sigma,X\;\mathsf{val}\vdash X\;\mathsf{val}}
+\end{equation}
+
+\begin{equation}\label{44_4_b}
+\frac{\Gamma \vdash e \; \mathsf{val}}{\Gamma \vdash \llbracket c;e\rrbracket \;\mathsf{val}}
+\end{equation}
+\end{subequations}
+（没必要因为结构体的值本身是一种值而坚持认为结构体的动态部分是值。）
+
+规则44.3a规定，只有结构体值才具有明确定义的静态部分，因此预加载的对密封结构的静态部分的引用不是一个值。这个性质保证了抽象类型的表示独立性，正如第44.1节所讨论的那样。如果在$M$是一个密封模块的条件下，$M\cdot s$是合法的，那么它的类型的身份将依赖于底层实现，这是违反抽象原则的。另一方面，模块变量是值，所以如果$X:\llbracket t:T;\tau\rrbracket $是一个模块变量，那么$X\cdot s$是一个良好格式的类型。这意味着密封模块必须绑定到变量才能使用。正因为如此，我们在模块表达式中包含了定义。
+
+规则44.3b要求模块的签名$M$是非依赖的，以便结果类型$\tau$不依赖于模块的静态部分。这种独立性并非总是成立的。例如，如果$M$是一个密封的模块，例如$N\upharpoonleft \llbracket t :: T;t\rrbracket $（其中$N$是一个模块），则投影$M$不是良好格式的。因为如果它是良好格式的，它的类型将是$M\cdot s$，这将破坏抽象类型的表示独立性。但是，如果$M$是模块值，那么只要我们包含以下\textit{自我识别}规则，就可以为它导出一个非依赖的签名：
+\begin{equation}\label{44_5}
+\frac{\Gamma \vdash M:\llbracket u::\kappa;\tau\rrbracket \quad\Gamma\vdash M\;\mathsf{val}}{\Gamma\vdash M:\llbracket u::S(M\cdot s::\kappa);\tau\rrbracket }
+\end{equation}
+
+此规则将模块值的静态部分的身份传播到其签名中。静态部分的动态部分的类型依赖性可以通过共享传播来消除。下述构造函数等价的规则指出，来自模块值的类型投影是可消除的：
+\begin{equation}\label{44_6}
+\frac{\Gamma\vdash\llbracket c;e\rrbracket :\llbracket t::\kappa;\tau\rrbracket \quad\Gamma\vdash\llbracket c;e\rrbracket \mathsf{val}}{\Gamma\vdash\llbracket c;e\rrbracket \cdot s \equiv c::\kappa}
+\end{equation}
+
+我们要求表达$e$是一个值，这在规则的第二个前提中是隐含的。这并不是绝对必要的，但是它没有害处。模块上的封闭构造器（或种类）的显式依赖关系总是可以被消除。特别地，如果表示独立性是可以保证的，那么构造函数的身份$\llbracket c;e\rrbracket \cdot s$是独立的。模块的动态语义如下：
+\begin{subequations}
+
+\begin{equation}\label{44_7_a}
+\frac{e \mapsto e'}{\llbracket c;e\rrbracket \mapsto\llbracket c;e'\rrbracket }
+\end{equation}
+
+\begin{equation}\label{44_7_b}
+\frac{e\;\mathsf{val}}{\llbracket c;e\rrbracket \cdot d\mapsto e}
+\end{equation}
+\end{subequations}
+
+在运行时不需要对构造函数进行求值，因为表达式的动态语义不依赖于它们的类型。相对于前面的静态语义来说，证明这种动态语义的类型安全并不困难。
+
+\section{一等和二等模块}
+
+通常根据签名是否是类型来区分一等和二等模块，即模块是否和其他类型的表达式有一样的格式。当模块是一等时，它们的值可以取决于运行时的状态。当模块是二等时，签名是类型的分类器的单独形式，并且模块表达式可能不会以与普通表达式相同的方式被使用。例如，根据月球的相位来计算模块可能不太可能。
+
+从表面上看，一等模块好像优于二等模块，因为你可以用它们做更多事情。但仔细观察我们可以看到，“少即是多”的原则在这里也适用，就像在第二十二和二十三章里讨论的那样。特别地，如果模块是一等的，那么对计算它们的表达式必须采取“悲观”的态度，这是因为它们代表了完全一般的甚至是状态相关的计算。其中一个后果是，在类型检查过程中很难甚至不可能跟踪模块的静态部分的身份。通常，模块表达式不需要有一个定义良好的静态组件，从而排除了它在类型表达式中的使用。另一方面，二等模块可以允许使用类型中模块的静态组件，这正是因为可能的计算范围减少了。在这方面，二等的模块比一等的模块更强大。更重要的是，一个二等的模块系统总是可以得到扩展，从而\textit{允许}一等的模块，而不需要它们是一等的。因此，我们拥有两全其美的优点：一等模块的灵活性和二等模块的精度。简而言之，你只需支付你使用的费用：如果你使用一等的功能，你应该支付费用；但是如果你不这样做，你就不会为此付出代价。
+
+
+我们用下述方式把一等的模块加入\textbf{Mod}。第一步，用存在类型扩充类型系统（在第十七章中描述过），因此“一等模块”就是存在类型的包。一个签名为$\llbracket t::\kappa;\tau\rrbracket $的二等模块被构造成一等的通过形成类型为$\exists t::\kappa . \tau$的包$\mathsf{pack}\;M\cdot s\;\mathsf{with}\;M\cdot d \;\mathsf{as} \;\exists (t.\tau)$，它由$M$的静态和动态部分组成。第二步，为了允许用包来充当模块的行为，我们引入了模块表达式$\mathsf{open}\;e$用于把包作为模块来打开。
+
+\begin{equation}\label{44_8}
+\frac{\Gamma\vdash e : \exists t::\kappa . \tau}{\Gamma \vdash \mathsf{open}\;e:\llbracket t::\kappa;\tau\rrbracket }
+\end{equation}
+
+因为包$e$是一个任意存在类型的表达式，模块表达式$\mathsf{open}\;e$可能不会被看作是值，因而没有一个良好定义的静态部分。我们通常必须在使用模块之前把它绑定到一个变量，模仿第十七章中给出的存在类型的消除形式的组合行为。
+
+
+\section{注记}
+MacQueen（1986）首次提出用依赖类型来表达模块性。后来的研究扩展了这一建议，以模拟编译和运行时的\textit{状态差异}（Harper等，1990），并解释了类型抽象和类型类（Harper和Lillibridge，1994；Leroy，1994）。回避问题首先由Castagna和Pierce（1994）以及Harper和Lillibridge（1994）分离出来。在随后的工作中，它已在模块上发挥了中心作用，例如Lillibridge（1997）和Dreyer（2005）。Harper和Lillibridge（1994）和Leroy（1994）介绍了自我识别规则。该规则后来被确定为高阶单例的表现（Stone和Harper，2006）。这些观点的整合被用作模块元理论自动化的基础（Lee等，2007）。一个模块系统设计中主要问题的全面总结由 Dreyer（2005）给出。
+
+这里给出的介绍重点关注支持模块化所需的类型结构。另一种公式使用\textit{精化}，将模块化结构转换为更原始的概念，如多态性和高阶函数。\textit{标准ML的定义}（Milner等，1997）开创了精心制定的方法。在Russo的早期工作的基础上，Rossberg等人（2010）提出了更严格的类型论方法。基于精化的方法的优点在于它可以用简单的类型理论作为目标语言，但代价是模块化的解释更加复杂。
+
+\textbf{习题}
+
+
+44.1 考虑下列式子给出的有限集合的类型抽象$\sigma_{set}$，集合中的元素类型是$\tau_{el}$
+$$\sigma_{set} = \llbracket t::T;\tau_{set}\rrbracket $$
+$$\tau_{set} = \langle \mathsf{emp} \hookrightarrow t,ins \hookrightarrow \tau_{elt} \times t \rightarrow t,\mathsf{mem} \hookrightarrow \tau_{elt} \times t \rightarrow \mathsf{bool} \rangle$$
+请定义一个在有限集合元素类型是字典的情况下的实现：
+$$\Gamma,D:\sigma_{dict}\vdash M_{set}:\sigma{set}$$
+其中字典的键的类型和值的类型是良好定义的。
+
+
+44.2 固定节点的类型为有序类型$\tau_{nod}$，考虑下列有限图的类型抽象$\sigma{grph}$
+$$\sigma_{grph} = \llbracket t_{grph}::T;\llbracket t_{edg}::S(\tau_{edg});\tau_{grph}\rrbracket \rrbracket $$
+$$\tau_{edg} = \tau_{nod} \times \tau_{nod}$$
+$$\tau_{grph} = \langle \mathsf{emp} \hookrightarrow t_{grph},\mathsf{ins} \hookrightarrow \tau_{edg} \times t_{grph} \rightarrow t_{grph},\mathsf{mem} \hookrightarrow \tau_{edg} \times t_{grph} \rightarrow \mathsf{bool}\rangle$$
+类型签名 $\sigma_{grph}$ 是半透明的，具有透明和不透明类型的组件：图是抽象的，但是边是节点的有序对。
+请依据节点的实现、节点的集合的实现和把节点映射为节点集合的字典的实现，定义下列实现：
+$$N:\sigma_{ord},S:\sigma_{nodset},D:\sigma_{nodsetdict}\vdash M_{grph}:\sigma_{grph}$$
+用一个将节点映射到和它相邻的节点集合的字典来表示图。定义节点类型$\tau_{nod}$为类型$N\cdots$，并且根据节点的类型恰当地选择集合和字典抽象的类型签名。
+
+
+44.3 我们引入\textit{签名修改}（一个习题43.3中定义的类别修改的变种）的概念，在签名修改中，构造子组件的定义可以被加在一个签名上。令$P$代表一个静态和动态投影的组合，它的形式为$\cdot d ...\cdot d\cdot s$，因此$X \cdot P$代表$X\cdot d... \cdot d \cdot s$。假设$\Gamma \vdash \sigma \;\mathsf{sig},\Gamma,X:\sigma \vdash X \cdot P::\kappa$，并且$\Gamma \vdash c::\kappa$。定义签名$\sigma \{P:=c\}$使得$\Gamma \vdash \sigma\{P:=c\} <: \sigma$ 并且 $\Gamma,X:\sigma\{P:=c\} \vdash X\cdot P \equiv c::\kappa$。
+
+
+44.4 签名$\sigma_{grph}$是下列类型类的子签名（实例）$$\sigma_{grphcls} = \llbracket t_{grph}::T;\llbracket t_{edg}::T;\tau_{grph}\rrbracket \rrbracket$$
+在该类型类中，$t_{edg}$的定义为两个节点的乘积。验证$\Gamma \vdash \sigma_{grph} \equiv \sigma_{graphcls}\{\cdot d\cdot s := \tau_{nod} \times \tau_{nod} \}$，使得前者可以被定义为格。
