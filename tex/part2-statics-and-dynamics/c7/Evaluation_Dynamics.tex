@@ -1,0 +1,43 @@
+\section{7.1求值动态语义}%使用\section{}
+
+{\it 求值动态语义}包括求值命题 $e\Downarrow v$ 的归纳定义，其中，封闭表达式 $e$ 的值为 $v$. 用下列规则定义分析动态：%judgement应为断言
+%原译者注：judgement还是换成了命题更妥当。assertion才是断言
+\begin{center}%使用subequations自动编号
+$\overline{\mathrm{n}\mathrm{u}\mathrm{m}[n]\Downarrow \mathrm{n}\mathrm{u}\mathrm{m}[n]}$   (7.1a)
+
+$\overline{\mathrm{s}\mathrm{t}\mathrm{r}[\mathrm{s}]\Downarrow \mathrm{s}\mathrm{t}\mathrm{r}[\mathrm{s}]}$   (7.1b)
+
+$\displaystyle \frac{e_{1}\Downarrow \mathrm{n}\mathrm{u}\mathrm{m}[n_{1}]e_{2}\Downarrow \mathrm{n}\mathrm{u}\mathrm{m}[n_{2}]n_{1}+n_{2}=n}{\mathrm{p}1\mathrm{u}\mathrm{s}(e_{1};e_{2})\Downarrow \mathrm{n}\mathrm{u}\mathrm{m}[n]}$   (7.1c)
+
+$\displaystyle \frac{e_{1}\Downarrow \mathrm{s}\mathrm{t}\mathrm{r}[\mathrm{s}_{1}]e_{2}\Downarrow \mathrm{s}\mathrm{t}\mathrm{r}[\mathrm{s}_{2}]\mathrm{s}_{1^{\wedge}}\mathrm{s}_{2}=\mathrm{s}}{\mathrm{c}\mathrm{a}\mathrm{t}(e_{1};e_{2})\Downarrow \mathrm{s}\mathrm{t}\mathrm{r}[\mathrm{s}]}$   (7.1d)
+
+$\displaystyle \frac{e\Downarrow \mathrm{s}\mathrm{t}\mathrm{r}[\mathrm{s}]|\mathrm{s}|=n}{1\mathrm{e}\mathrm{n}(e)\Downarrow \mathrm{n}\mathrm{u}\mathrm{m}[n]}$   (7.1e)
+
+$\displaystyle \frac{[e_{1}/x]e_{2}\Downarrow v_{2}}{1\mathrm{e}\mathrm{t}(e_{1};x.e_{2})\Downarrow v_{2}}$   (7.1f)
+\end{center}
+一个let 表达式的值取决于绑定在主体中的替代部分。规则不是语法制导的，因为规则(7.1f)的前提不是该规则结论中表达式的子表达式。
+%去掉前一个“在”
+规则(7.1f)指定定义的按名解释。对于按值解释，应采用以下规则:
+
+\begin{center}
+$\displaystyle \frac{e_{1}\Downarrow v_{1}[v_{1}/x]e_{2}\Downarrow v_{2}}{1\mathrm{e}\mathrm{t}(e_{1};x.e_{2})\Downarrow v_{2}}$   (7.2)
+\end{center}
+由于分析命题是归纳定义的，我们通过规则引入来证明其性质。具体地说，通过展示 $\mathcal{P}(e\Downarrow v)$ 持有的属性，足以看出 $\mathcal{P}$ 是按规则（7.1）封闭的
+
+1. $\mathcal{P}$(num $[n]\Downarrow \mathrm{n}\mathrm{u}\mathrm{m}[n]$).
+
+2. $\mathcal{P}$ (str $[\mathrm{s}]\Downarrow \mathrm{s}\mathrm{t}\mathrm{r}[\mathrm{s}]$).
+
+3. $\mathcal{P}($plus ($e_{1;}\cdot e_{2})\Downarrow \mathrm{n}\mathrm{u}\mathrm{m}[n])$ , 如果 $\mathcal{P}(e_{1}\Downarrow \mathrm{n}\mathrm{u}\mathrm{m}[n_{1}])$ , $\mathcal{P}(e_{2}\Downarrow \mathrm{n}\mathrm{u}\mathrm{m}[n_{2}])$ , 且 $n_{1}+n_{2}=n.$
+
+4. $\mathcal{P}(\mathrm{c}\mathrm{a}\mathrm{t}(e_{1;}\cdot e_{2})\Downarrow \mathrm{s}\mathrm{t}\mathrm{r}[\mathrm{s}])$ , 如果 $\mathcal{P}(e_{1}\Downarrow \mathrm{s}\mathrm{t}\mathrm{r}[\mathrm{s}1])$ , $\mathcal{P}(e_{2}\Downarrow \mathrm{s}\mathrm{t}\mathrm{r}[\mathrm{s}2])$ , 且 $\mathrm{s}_{1^{\wedge}}\mathrm{s}_{2}=\mathrm{s}.$
+
+5. $\mathcal{P}(\mathrm{l}\mathrm{e}\mathrm{t}(e_{1;}\cdot x.e_{2})\Downarrow v_{2})$ , 如果 $\mathcal{P}([e_{1}/x]e_{2}\Downarrow v_{2})$ .
+
+这一归纳原则与$e$本身的结构归纳不一样，因为求值规则不是语法制导的。
+
+引理 7.1. {\it 如果} $e\Downarrow v$, {\it 那么} $v\iota/\mathrm{a}/.$%e val
+
+{\it 证明}. 通过归纳规则（7.1）。除规则(7.1f)外所有情况是即时的。对于后一种情况，结果
+直接遵循以分析规则为前提的归纳假设。 $\square $
+
