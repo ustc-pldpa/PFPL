@@ -1,0 +1,102 @@
+﻿\section{存在类型}
+\textbf{FE}的语法用以下结构扩展了\textbf{F}：
+
+\begin{tabular}{llllll}
+Typ & $\tau$ & ::= & some$(t.\tau)$ & $\exists(t.\tau)$ & 接口\\
+Exp & $e$ & ::= & pack$\{t.\tau\}\{\rho\}(e)$ & pack $\rho$ with $e$ as $\exists(t.\tau)$ & 实现\\
+ &  &  & open$\{t.\tau\}\{\rho\}(e_{1};t,x.e_{2})$ & open $e_{1}$ as $t$ with $x:\tau$ in $e_{2}$ & 客户端\\
+\end{tabular}
+
+引入形式$\exists(t.\tau)$是形式pack $\rho$ with $e$ as $\exists(t.\tau)$的一个\textit{包}，其中$\rho$是一个类型，$e$是类型$[\rho/t]\tau$的表达式。
+类型$\rho$是包的\textit{表示类型}，表达式$e$是包的\textit{实现}。
+消去形式是open$\{t.\tau\}\{\rho\}(e_{1};t,x.e_{2})$，它通过将其表示类型绑定到$t$并将其实现绑定到$x$并在$e_{2}$中打开包$e_{1}$。
+至关重要的是，类型规则确保客户端是类型正确的，与实现器使用的实际表示类型无关，因此可以改变它而不会影响客户端的类型正确性。
+
+open结构的抽象语法规定了类型变量$t$和表达式变量$x$在客户端中被绑定。
+在作用域内不和其他变量名发生冲突时，他们可以在不影响结构含义的情况下被重命名。
+换句话说，类型$t$是一种“新”类型，当它被引入时与其他类型不同。
+这个原则有时被称为抽象类型的\textit{生成性}：客户端通过生成“新”类型来使用抽象类型。
+这种行为依赖于第1章所述的识别协议。
+
+\subsection{静态语义}
+
+\textbf{FE}的静态语义由下列规则给出：
+
+\begin{subequations}
+	\begin{gather}
+		\frac{\Delta,t\ type \vdash \tau\ type}{\Delta \vdash some(t.\tau)\ type}\\
+		\frac{\Delta \vdash \rho\ type\ \ \Delta,t\ type \vdash \tau\ type\ \ \Delta \Gamma \vdash e:[\rho/t]\tau}
+			{\Delta \Gamma \vdash pack\{t.\tau\}\{\rho\}(e):some(t.\tau)}\\
+		\frac{\Delta \Gamma \vdash e_{1}:some(t.\tau)\ \ \Delta,t\ type\ \Gamma,x:\tau \vdash e_{2}:\tau_{2}  \Delta \vdash \tau_{2}\ type}
+			{\Delta \Gamma \vdash open\{t.\tau\}\{\tau_{2}\}(e_{1};t,x.e_{2}):\tau_{2}}
+	\end{gather}
+\end{subequations}
+
+规则(17.1c)%这里需要引用
+比较复杂，所以要详细讨论一下。有两个重要的地方需要注意：
+%“仔细研究”可以换成“详细讨论”
+
+\begin{enumerate}
+\item 客户端类型$\tau_{2}$不能包含抽象类型$t$。
+这条约束防止客户端将抽象类型的值作用在其原先定义的作用域之外。
+\item 客户端的主体$e_{2}$在不知道表示类型t的情况下进行类型检查。
+客户端实际上是类型变量$t$中的多态。
+\end{enumerate}
+
+\begin{lemma}[规律性]
+假设$\Delta \vdash e:\tau$。
+如果在$\Gamma$中对于所有$x_{i}:\tau_{i}$有$\Delta \vdash \tau_{i}\ type$，那么$\Delta \vdash \tau\ type$。
+\end{lemma}
+
+\begin{proof}
+将表达式和类型代入规则(17.1a)%此处需要引用
+中，归纳即可。
+\end{proof}
+
+\subsection{动态语义}
+
+\textbf{FE}的动态语义由下列规则给出（中括号的内容是一个急切的解释，省略掉则为懒惰的解释）：
+%“懒惰”可以考虑换成“消极”对应积极
+\begin{subequations}
+	\begin{gather}
+		\frac{[e\ val]}{pack\{t.\tau\}\{\rho\}(e)\ val}\\
+		\left[\frac{e\longmapsto e'}{pack\{t.\tau\}\{\rho\}(e)\longmapsto pack\{t.\tau\}\{\rho\}(e')}\right]\\
+		\frac{e_{1}\longmapsto e'_{1}}
+			{open\{t.\tau\}\{\tau_2\}(e_1;t,x.e_2)\longmapsto open\{t.\tau\}\{\tau_2\}(e'_{1};t,x.e_2)}\\
+		\frac{[e\ val]}
+			{open\{t.\tau\}\{\tau_2\}(pack\{t.\tau\}\{\rho\}(e);t,x.e_2) \longmapsto [\rho,e/t,x]e_2}
+	\end{gather}
+\end{subequations}
+
+我们可以看到，根据这些规则，\textit{在运行时没有抽象类型}！
+表示类型在包打开时通过替换传播到客户端，从而消除了客户端和实现器之间的抽象边界。
+因此，数据抽象是一种\textit{编译时规则}，在执行时不会留下任何痕迹。
+
+\subsection{安全性}
+
+通过分解为进展性和保持性来证明\textbf{FE}的安全性。
+
+\begin{theorem}[保持性]
+如果$e:\tau$并且$e \longmapsto e'$，那么$e:\tau$。
+\end{theorem}
+
+\begin{proof}
+将表达式和类型变量代入$e \longmapsto e'$中，归纳即可。
+\end{proof}
+
+\begin{lemma}[规范形式]
+如果$e:som(t.\tau)$并且$e\ val$，那么$e=pack\{t.\tau\}\{\rho\}(e')$对于$\rho$和$e'$有$e':[\rho/t]\tau$。
+\end{lemma}
+
+\begin{proof}
+使用闭式的定义和静态语义归纳即可。
+\end{proof}
+
+\begin{theorem}[进展性]
+如果$e:\tau$，那么$e\ val$或者存在$e'$使得$e \longmapsto e'$。
+\end{theorem}
+
+\begin{proof}
+使用规范形式引理，对$e:\tau$进行归纳即可。
+\end{proof}
+

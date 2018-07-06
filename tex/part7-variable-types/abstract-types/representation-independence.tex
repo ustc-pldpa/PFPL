@@ -1,0 +1,71 @@
+﻿\section{表示独立性}
+
+参数性的一个重要结论是它确保客户端对抽象类型的表示不敏感。
+%结果换成结论
+更确切地说，存在一个标准，即\textit{相似性}，用于将抽象类型的两个实现相关联，使得客户端的行为不会受到两个相似的实现之间交换的影响。 这个原则引导我们用一种简单的方法来证明抽象类型的\textit{候选}实现的正确性，这表明了它与明显正确的\textit{参考}实现是相似的。 因为候选实现和参考实现是相似的，所以没有客户端可以将他们彼此区分开来，因此如果参考实现在客户端中正确运行，那么候选实现在客户端中也可以正确运行。
+
+为了推导实现的相似性的定义，根据第17.3节给出的普遍性规律来检验存在类型的定义是有帮助的。
+很明显，抽象类型的客户端在抽象类型的表示中是多态的。
+抽象类型为$\exists(t.\tau)$的客户端c具有类型$\forall(t.\tau \rightarrow \tau_{2})$，其中t在$\tau_{2}$中不自由出现（但可能在$\tau$中自由出现）。 应用第16章非正式描述的参数属性（在第48章严格描述），这表明如果$R$是抽象类型的任何两个实现之间的相似关系，则客户端在其上的行为相同。 t不会在结果类型中出现，这可以确保客户端的行为与实现之间的关系选择无关，只要实现该关系的操作能够保留该关系即可。
+
+解释什么是相似性最好通过例子来完成。
+考虑存在类型$\exists(t.\tau)$，其中t是标记的元组类型
+$$\left \langle emp \hookrightarrow t,ins \hookrightarrow nat \times t,rem \hookrightarrow t \rightarrow (nat \times t)opt \right \rangle$$
+这指定了一个抽象类型的队列。
+操作emp、ins和rem分别为生成空队列、插入操作和删除操作。
+为了简单起见，元素类型是自然数。
+根据队列是否为空，删除的结果是一个可选对。
+
+定理48.12%此处应有引用
+确保了如果$\rho$和$rho'$是任意两个闭式类型，并且如果$R$是这两种类型的表达式之间的关系，
+那么如果实现$e:[\rho/x]\tau$和$e':[\rho'/x]\tau$有关系$R$，那么$c[\rho]e$与$c[\rho']e'$的行为相同。
+我们仍然要定义两个实现何时有关系$R$。
+让
+$$e \triangleq \left \langle emp \hookrightarrow e_{m},ins \hookrightarrow e_{i},rem \hookrightarrow e_{r} \right \rangle$$
+以及
+$$e' \triangleq \left \langle emp \hookrightarrow e'_{m},ins \hookrightarrow e'_{i},rem \hookrightarrow e'_{r} \right \rangle$$
+对于这两个实现有关系$R$，是说下面三个条件成立：
+\begin{enumerate}
+\item 空队列有关系：$R(e_{m},e'_{m})$。
+\item 两个有关系$R$的队列插入同一个元素后依旧有关系$R$：
+如果$d:\tau$且$R(q,q')$，那么$R(e_{i}(d)(q),e'_{i}(d)(q'))$。
+\item 如果两个队列有关系$R$，那么它们都是空的，或者它们的前面元素是相同的，并且它们的后面元素是有关系$R$：
+如果$R(q,q')$，那么以下条件有一条成立：
+	\begin{enumerate}
+	\item $e_{r}(q) \cong null \cong e'_{r}(q')$
+	\item $e_{r}(q) \cong just(\left \langle d,r \right \rangle),e'_{r}(q') \cong just(\left \langle d',r' \right \rangle),d \cong d',R(r,r')$
+	\end{enumerate}
+\end{enumerate}
+如果存在这样的关系R，那么实现e和e'是相似的。 术语源于抽象类型的操作保持关系的需求：如果它在执行操作之前保持关系，那么它必须在之后也保持关系，并且该关系必须适用于队列的初始状态。 因此，每个实现可以模拟另一个有关系R的实现。
+
+为了了解这如何在实际中工作的，我们大致地考虑前面定义的抽象类型队列的两个实现。
+对于参考实现，设$\rho$为natlist类型，empty为生成空列表，insert为添加给定的元素到列表头部，remove为删除列表的最后一个元素。
+%empty是清空列表
+代码如下：
+$$t \triangleq natlist$$
+$$emp \triangleq nil$$
+$$ins \triangleq \lambda(x:nat)\lambda(q:t)cons(x;q)$$
+$$rem \triangleq \lambda(q:t)case\ rev(q)\{nil \hookrightarrow null|cons(f;qr) \hookrightarrow just(\left \langle f,rev(qr) \right \rangle)\}$$
+删除一个元素由于需要翻转需要关于列表长度的线性时间。
+
+对于候选实现，设$\rho'$为$natlist \times natlist$类型，表示为$list \left \langle b,f \right \rangle$，其中b是队列的“后半部分”，f是队列“前半部分”的翻转。 对于此表示，定义empty为生成一对空列表，insert为在后半部分的头部插入元素，remove操作则基于队列前半部分是否为空。
+如果它是非空的，则删除头元素，返回后半部分和前半部分的尾部组成的列表对。
+如果它是空的，而后半部分非空，那么我们翻转后半部分，然后删除其头元素，最后返回由空列表和翻转后的后半部分尾部组成的列表对。
+代码如下：
+$$t \triangleq natlist \times natlist$$
+$$emp \triangleq \left \langle nil,nil \right \rangle $$
+$$ins \triangleq \lambda(x:nat)\lambda(\left \langle bs,fs \right \rangle :t)\left \langle cons(x;bs),fs \right \rangle $$
+$$rem \triangleq \lambda(\left \langle bs,fs \right \rangle :t)case\ fs
+\{nil \hookrightarrow e|cons(f;fs') \hookrightarrow \left \langle bs,fs' \right \rangle\}$$
+其中
+$$e \triangleq case\ rev(bs)\{nil \hookrightarrow null|
+cons(b;bs') \hookrightarrow just(\left \langle b,\left \langle nil,bs' \right \rangle \right \rangle)\}$$
+翻转操作是偶尔才有的，时间代价分摊后，所有操作的平均时间为常数时间。
+
+为了证明候选实现是正确的，我们可以证明它和参考实现是相似的。
+假设类型natlist和$natlist \times natlist$有关系R，关系R满足前面所说的三条模拟性的性质。
+那么$R(l,\left \langle b,f \right \rangle)$当且仅当列表l是$app(b)(rev(f))$，其中$app$是列表的扩展函数。
+也就是说，把l作为队列的参考表示，候选实现必须确保b的元素和翻转的f的元素可以形成列表l。
+很容易检查刚刚描述的实现是否保留了这种关系。
+这样做后，我们可以确信无论我们是使用参考实现还是候选实现，客户端c的行为都是相同的。 因为参考实现显然是正确的（尽管效率很低），所以候选实现也是正确的，客户端的行为不会因使用它而不是参考实现而受到影响。
+%候选人应该是候选实现吧

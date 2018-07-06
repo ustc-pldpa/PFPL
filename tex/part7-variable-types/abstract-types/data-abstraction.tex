@@ -1,0 +1,48 @@
+﻿\section{数据抽象}
+
+为了说明FE的使用，我们考虑一个支持三个操作的自然数队列抽象类型：
+\begin{enumerate}
+
+\item 生成空队列。
+\item 在队尾插入一个元素。
+\item 如果队列非空，删除头结点。
+
+\end{enumerate}
+
+这显然是一个简单的接口，但足以说明数据抽象的主要思想。
+%bare-bones翻译成基础更好
+虽然队列元素是自然数，但这并没有多大关系。
+关键并不是这个队列是什么样子，而是我们可以进行什么操作。
+%“可以”后加上“用它”，必须明确是在队列上的操作
+队列的行为用存在类型$\exists(t.\tau)$表示为：
+$$\exists(t.\left \langle emp \hookrightarrow t,ins \hookrightarrow nat \times t \rightarrow t,
+rem \hookrightarrow t \rightarrow (nat \times t)opt \right \rangle)$$
+队列的表示类型t是\textit{抽象的}——所有关于它的已知信息就是对于给定的类型它支持emp、ins和rem操作。
+
+队列的实现包括指定了表示类型的包和相关的操作。
+在内部实现中，队列的表现形式是已知的并且由操作所依赖。
+这是一个非常简单的实现$e_{l}$，其中队列表示为列表：
+$$pack\ natlist\ with \left \langle emp \hookrightarrow nil,ins \hookrightarrow e_{i},rem \hookrightarrow e_{r} \right \rangle 
+as\ \exists(t.\tau)$$
+其中
+$$e_{i}:nat \times natlist \rightarrow natlist=\lambda(x:nat \times natlist)...$$
+以及
+$$e_{r}:natlist \rightarrow nat \times natlist=\lambda(x:natlist)...$$
+
+$e_{i}$的消去体将x的第一个分量，即元素，放到x的第二个分量，即队列中。
+而$e_{r}$的消去体则相反，返回的是头元素和队尾的翻转。
+这两个操作都“知道”队列被表示为natlist类型的值，并进行相应的编程。
+
+我们也可以给出另一个接口同为$\exists(t.\tau)$的实现$e_{p}$，但是其队列被表示为成对的列表，由队列的“后半部分”与“前半部分”的翻转组成。
+这种由两部分组成的表示法避免了每次调用时都需要反转，使操作降低为常数时间：
+$$pack\ natlist \times natlist\ with \left \langle emp \hookrightarrow \left \langle nil,nil \right \rangle,
+ins \hookrightarrow e_{i},rem \hookrightarrow e_{r} \right \rangle as \exists(t.\tau)$$
+在这种情况下，$e_{i}$的类型为
+$$nat \times (natlist \times natlist) \rightarrow (natlist \times natlist)$$
+$e_{r}$的类型为
+$$(natlist \times natlist) \rightarrow nat \times (natlist \times natlist)$$
+这两个操作都“知道”队列被表示为$natlist \times natlist$类型的值，并进行相应的编程。
+
+重要的一点是，无论我们选择哪种队列实现，客户端都会进行检查，因为在类型检查过程中，表示类型是隐藏的或者是抽象的。
+因此，它不能依赖于它是natlist还是natlist×natlist或其他类型。
+也就是说，客户端独立于抽象类型的表示。

@@ -1,0 +1,21 @@
+﻿\section{存在类型的可定义性}
+
+\textbf{FE}语言不是F的适当扩展，因为存在类型（在懒惰动态语义下）可以根据普通类型定义。
+%章首universals翻译成了普遍类型，可以统一
+为什么这应该成为可能？
+请注意，抽象类型的客户端在表示类型中是多态的。
+关于
+$$open\ e_{1}\ as\ t\ with\ x:\tau\ in\ e_{2}:\tau_{2}$$
+其中$e_{1}:\exists(t.\tau)$的类型规则指明，如果$t\ type$并且$x:\tau$，那么$e_{2}:\tau——{2}$。
+本质上，客户端是类型的多态函数
+$$\forall(t.\tau \rightarrow \tau_{2})$$
+其中t可能在$\tau$（操作的类型）中出现，但是不可能在$\tau_{2}$（结果的类型）中出现。
+这表明存在类型的以下编码：
+$$\exists(t.\tau) \triangleq \forall(u.\forall(t.\tau \rightarrow u) \rightarrow u)$$
+$$pack\ \rho\ with\ e\ as\ \exists(t.\tau) \triangleq \Lambda(u)\lambda(x:\forall(t.\tau \rightarrow u))x[\rho](e)$$
+$$open\ e_{1}\ as\ t\ with\ x:\tau\ in\ e_{2} \triangleq e_{1}[\tau_{2}](\Lambda(t)\lambda(x:\tau)e_{2})$$
+一个存在类型被编码为一个多态函数，它将整体结果类型u作为参数，和一个用结果类型u表示客户端的多态函数，最终产生一个类型为u的值作为总体结果。 因此，open结构简单地将客户端打包成这种多态函数，在结果类型$\tau_{2}$处实例化存在类型，并将其应用于多态客户端。
+（因此，编码转换依赖于了解open结构的整体结果类型$\tau_{2}$。）
+最后，由表示类型$\rho$和实现$e$组成的包是一个多态函数。
+当给定结果类型$u$和客户端$x$时，用$\rho$实例化$x$并传递给它的实现$e$。
+%这个句子拆成两半会更通顺
