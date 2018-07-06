@@ -1,25 +1,26 @@
-\chapter{控制栈}
-结构化动态语义在证明语言的性质（例如类型安全）时十分便利，但将其用于指导实现时却存在一些不便。结构化动态语义通过定义一些转换规则，以规定在面临一个表达式时，应该在表达式的何处执行下一条指令，从而定义该语言下程序的运行时行为。但是，结构化动态语义并没有阐明如何在表达式中寻找下一条指令执行的位置。为了将这个过程明确化，我们引入一个机制，称为\textit{控制栈}，在一些指令执行完后，控制栈中记录的内容为程序执行“仍需要做的剩余工作”。栈的使用消除了对转换规则的前提的需求，从而转换系统定义了一个\textit{抽象机}，此抽象机的操作完全由其当前状态包含的显式信息所确定，就像一台实际的计算机一样。
+\chapter{\glsentrytext{control-stack}}
 
-本章中，我们将开发一个抽象机\textbf{K}，用于\textbf{PCF}中表达式的求值。该抽象机将承载原始指令执行步骤的上下文环境，和传递结果以确定下一执行步骤的过程进行显式化。我们还将证明，抽象机\textbf{K}和\textbf{PCF}在面临相同表达式时，总会得出相同的结果。
+使用结构化动态语义在证明语言的性质（例如类型安全）时十分便利，但将其用于指导实现时却存在一些不便。结构化动态语义通过定义一些转换规则，以规定在面临一个表达式时，应该在表达式的何处执行下一条指令，从而定义该语言下程序的运行时行为。但是，结构化动态语义并没有阐明如何在表达式中寻找下一条指令执行的位置。为了将这个过程明确化，我们引入一个机制，称为\gls{control-stack}，在一些指令执行完后，\gls{control-stack}中记录的内容为程序执行“仍需要做的剩余工作”。栈的使用消除了对转换规则的前提的需求，从而转换系统定义了一个\gls{abstract-machine}，此\gls{abstract-machine}的操作完全由其当前状态包含的显式信息所确定，就像一台实际的计算机一样。
 
-\section{抽象机定义}
-在\textbf{PCF}中，抽象机\textbf{K}的一个状态s由一个控制栈k和一个闭式e组成。状态可具有下面两者之一的形式：
+本章中，我们将开发一个\gls{abstract-machine}\textbf{K}，用于\textbf{PCF}中表达式的求值。该\gls{abstract-machine}将承载原始指令执行步骤的上下文环境，和传递结果以确定下一执行步骤的过程进行显式化。我们还将证明，\gls{abstract-machine}\textbf{K}和\textbf{PCF}在面临相同表达式时，总会得出相同的结果。
 
-1. \textit{求值状态}$k\,\triangleright\,e$ ，对应一个闭式e在控制栈k上的求值；
+\section{\gls{abstract-machine}定义}
+在\textbf{PCF}中，\gls{abstract-machine}\textbf{K}的一个状态s由一个\gls{control-stack}k和一个闭式e组成。状态可具有下面两者之一的形式：
 
-2. \textit{返回状态}$k\,\triangleleft\,e$ ，其中 e val（e是值），对应栈k在面临一个闭合值e时的求值。
+1. \textit{求值}状态$k\,\triangleright\,e$ ，对应一个闭式e在\gls{control-stack}k上的求值；
 
-记忆技巧：式子中间的符号“指向”控制栈中当前的“焦点部分”，即求值状态中的表达式或返回状态中的栈。
+2. \textit{返回}状态$k\,\triangleleft\,e$ ，其中 e val（e是值），对应栈k在面临一个闭合值e时的求值。
 
-控制栈代表了求值的上下文。它记录了求值的“当前位置”，即当前表达式的值需要返回的上下文位置。形式上，控制栈即是一个栈帧的链表：
+记忆技巧：式子中间的符号“指向”\gls{control-stack}中当前的“焦点部分”，即求值状态中的表达式或返回状态中的栈。
+
+\gls{control-stack}代表了求值的上下文。它记录了求值的“当前位置”，即当前表达式的值需要返回的上下文位置。形式上，\gls{control-stack}即是一个栈帧的链表：
 \begin{subequations}
     \begin{gather}
        \dfrac{}{\epsilon \; \mathsf{stack}}\\
        \dfrac{f \; \mathsf{frame} \quad k\;\mathsf{stack}}{k;f\;\mathsf{stack}}
     \end{gather}
 \end{subequations}
-抽象机\textbf{K}的栈帧由下面的规则归纳地定义：
+\gls{abstract-machine}\textbf{K}的栈帧由下面的规则归纳地定义：
 \begin{subequations}
     \begin{gather}
        \dfrac{}{\mathsf{s(-)} \; \mathsf{frame}}\\
@@ -28,7 +29,7 @@
     \end{gather}
 \end{subequations}
 
-栈帧对应\textbf{PCF}中动态语义的搜索规则。因此，我们不再需要依靠转换推导的结构来记录还未做的计算，而只需使用控制栈的栈帧对其作一个显式的记录。
+栈帧对应\textbf{PCF}中动态语义的搜索规则。因此，我们不再需要依靠转换推导的结构来记录还未做的计算，而只需使用\gls{control-stack}的栈帧对其作一个显式的记录。
 
 在\textbf{PCF}机器上，状态之间的转换判断是由一系列推理规则归纳地定义的。我们从自然数的规则开始，对后继符号应用急切动态语义：
 \begin{subequations}
@@ -61,7 +62,7 @@
 \end{subequations}
 注意，一般递归式的求值不需要占用栈空间。
 
-抽象机\textbf{K}的初始状态和结束状态由下列规则定义：
+\gls{abstract-machine}\textbf{K}的初始状态和结束状态由下列规则定义：
 \begin{subequations}
     \begin{gather}
        \dfrac{}{\epsilon \triangleright \mathsf{initial}}\\
