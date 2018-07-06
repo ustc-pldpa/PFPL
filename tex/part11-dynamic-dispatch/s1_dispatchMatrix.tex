@@ -1,14 +1,14 @@
 \section{分派矩阵}
 因为方法的行为是由其参数的类别决定的，所以也许可以用一个\textit{分派矩阵}（\textit{dispatch matrix}）$ e_{dm} $ 来表示。
-在这个矩阵中，行是类，列是方法，每个元素 $ (c, d) $ 定义了方法 $d$ 作用在参数的类 $c$ 上的行为，由此描述在一个对象的实例数据上的一个函数。
+在这个矩阵中，行为类，列为方法，每个元素 $ (c, d) $ 定义了方法 $d$ 作用在参数的类 $c$ 上的行为，由此描述在一个对象的实例数据上的一个函数。
 因此，这个矩阵具有如下形式：
 
 $$ \prod_{c \in C} \prod_{d \in D} (\tau^{c} \rightharpoonup \rho_{d}) $$
 
-其中 $C$ 是类的集合，$D$ 是方法的集合，$\tau^c$ 是类 $c$ 的实例类型，$ \rho_{d} $ 是方法 $d$ 的结果类型。
+其中 $C$ 是类名字的集合，$D$ 是方法名字的集合，$\tau^c$ 是类 $c$ 的实例类型，$ \rho_{d} $ 是方法 $d$ 的结果类型。
 实例类型对所有的作用在给定类上的所有方法都是一样的，且它们的结果类型也是一样的。
 
-举一个便于理解的例子，回想一下前面提到的飞机位置点的类型。点类型被分为两个类：$ \mathtt{cart} $ （笛卡尔坐标系）和 $ \mathtt{pol} $ （极坐标系）。
+举一个便于理解的例子，回想一下前面提到的平面上点的类型。点类型被分为两个类：$ \mathtt{cart} $ （笛卡尔坐标）和 $ \mathtt{pol} $ （极坐标）。
 对于笛卡尔坐标系的点，实例数据有这样的类型：
 
 $$ \tau^{\mathtt{cart}} =  \langle \mathtt{x} \hookrightarrow \mathtt{float}, \mathtt{y} \hookrightarrow \mathtt{float} \rangle $$
@@ -26,7 +26,7 @@ $$ \mathtt{cart} \hookrightarrow \tau^{\mathtt{cart}} \rightharpoonup \rho_{\mat
 
 $$ e^{\mathtt{cart}}_{\mathtt{dist}} = \lambda (u : \tau^{\mathtt{cart}})(u \cdot \mathtt{x})^2 + (u \cdot \mathtt{y})^2 $$
 
-上面是距离平方笛卡尔坐标系的计算方法，极坐标系下为：
+上面是平方笛卡尔坐标系下的距离平方的算法，在极坐标系下为：
 
 $$ e^{\mathtt{pol}}_{\mathtt{dist}} = \lambda (v : \tau^{pol})(v \cdot \mathtt{r})^2 $$
 
@@ -34,9 +34,9 @@ $$ e^{\mathtt{pol}}_{\mathtt{dist}} = \lambda (v : \tau^{pol})(v \cdot \mathtt{r
 
 $$ \langle \mathtt{cart} \hookrightarrow \tau^{\mathtt{cart}} \rightharpoonup \rho_{\mathtt{quad}}, \mathtt{pol} \hookrightarrow \tau^{\mathtt{pol}} \rightharpoonup \rho_{\mathtt{quad}} \rangle $$
 
-其中 $ \rho_{\mathtt{quad}} = [I, II, III, IV] $ 为象限类型，$ e^{\mathtt{cart}}_{\mathtt{quad}} $ 与 $ e^{\mathtt{pol}}_{\mathtt{quad}} $ 分别为计算两种坐标系下点的象限的方法。
+其中 $ \rho_{\mathtt{quad}} = [\mathtt{I, II, III, IV}] $ 为象限类型，$ e^{\mathtt{cart}}_{\mathtt{quad}} $ 与 $ e^{\mathtt{pol}}_{\mathtt{quad}} $ 分别为计算两种坐标系下点的象限的方法。
 
-现在我们让 $ C = \{ \mathtt{cart}, \mathtt{pol} \} $ 并且让 $ D = \{ \mathtt{dist}, \mathtt{quad} \} $ ，定义分派矩阵 $ e_{\mathtt{dm}} $ 有类型：
+现令 $ C = \{ \mathtt{cart}, \mathtt{pol} \} $ 并且让 $ D = \{ \mathtt{dist}, \mathtt{quad} \} $ ，定义分派矩阵 $ e_{\mathtt{dm}} $ 有类型：
 
 $$ \prod_{c \in C} \prod_{d \in D} (\tau^{c} \rightharpoonup \rho_{d})$$
 
@@ -44,14 +44,14 @@ $$ \prod_{c \in C} \prod_{d \in D} (\tau^{c} \rightharpoonup \rho_{d})$$
 
 $$ e_{\mathtt{dm}} \cdot c \cdot d \longmapsto^{*} e^{c}_{d} $$
 
-它描述了分派矩阵的每个元素 $ e_{\mathtt{dm}} $ 为类 $ c $ 与方法 $ d $ 上定义作用在该类对象上的方法的行为。
+它描述了分派矩阵 $ e_{\mathtt{dm}} $ 、类 $ c $ 与方法 $ d $ 定义作用在类 $ c $ 对象上的 $ d $ 方法的行为。
 
 动态分派是下述内容的抽象：
 
 \begin{itemize}
-\item 对象的抽象类型 $ t_{\mathtt{obj}} $ 可由方法作用在不同类上的不同行为而划分。
+\item 对象的抽象类型 $ t_{\mathtt{obj}} $ ，其可由方法作用在不同类上的不同行为进行划分。
 \item 具有 $t_{\mathtt{obj}}$ 类型的操作 $ \mathtt{new}[c](e) $ 构造类 $ c $ 的对象，其实例数据由类型为 $\tau^{c}$ 的表达式 $e$ 给出。
-\item 具有 $\rho_{d}$ 类型的操作 $ e \Leftarrow d $ 为方法 $ d $ 作用在具有类型 $\tau_{\mathtt{obj}}$ 的表达式 $e$ 给出的对象上。
+\item 具有类型 $\rho_{d}$ 的操作 $ e \Leftarrow d $ ，在具有类型 $\tau_{\mathtt{obj}}$ 的表达式 $e$ 上调用方法 $ d $ 。
 \end{itemize}
 
 这些操作必须满足动态分派定义的特征：
@@ -74,7 +74,7 @@ $$ (\mathtt{new}[c](e)) \Leftarrow d \longmapsto^{*} e^{c}_{d}(e) $$
 抽象类型（26.1）显示了动态分派的缺点，即每次仅有一条信息可以被发送到某个特定的对象。
 这个缺点在某些情况下看起来很自然，比如在 Simula-67 中的离散事件模拟。但是很多情况下能同时作用于对多个类的对象显得至关重要。
 比如，把一个向量与一个标量值相乘，包括域内的元素与一个交换幺半群；%？？？？？？
-无论是将标量与域或交换幺半群相乘，或者任何特定预见结合的方法都是不自然的。%？？？？？？
+无论是将标量与域或交换幺半群相乘，还是任何特定预见结合的方法都是不自然的。%？？？？？？
 而且，这种乘法不是在运行时检查这个运算是由一个标量和一个向量构成而如此作用的，因为标量或者向量没有固有的东西能标识它们自身。
 % For example, the multiplication of a vector by a scalar combines the
 % elements of a field and a commutative monoid; there is no natural way to associate scalar multipli-
@@ -83,7 +83,7 @@ $$ (\mathtt{new}[c](e)) \Leftarrow d \longmapsto^{*} e^{c}_{d}(e) $$
 % vector in hand, for there is nothing inherent in a scalar or a vector that marks them as such
 对于这种情况，解决方案是模型系统（module system）（第 44 与 45 章）与非动态分派。这两种机制出现的目的不同，互为补充。
 
-相样地，可以反驳一个广泛的谬误，即抽象类型的值不能同构。有些时候说一个复数的抽象类型必须有唯一的表示，比如用直角坐标表示。
+同样，我们可以反驳一个广泛的谬误：抽象类型的值不能同构。有些时候说一个复数的抽象类型必须有唯一的表示，比如用直角坐标表示。
 这是个谬论。尽管一个抽象类型定义单一的类型，但如果说对象仅能有单一表示就是错的。抽象类型可以实现加法，该操作分派在相应的加数上计算出结果，
 动态分配是数据抽象的一种使用方式，因此不能反对这一点。%？？？？？？
 % The abstract type can be implemented as a sum, and the operations may correspondingly dispatch on the summand to compute 
